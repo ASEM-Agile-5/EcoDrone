@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "dev": "ecodrone-dev",
+    "production": "ecodrone-production"
+  }
+}
