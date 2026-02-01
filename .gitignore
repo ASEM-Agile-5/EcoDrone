@@ -137,3 +137,22 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Firebase
+firebase-debug.log
+firebase-debug.*.log
+.firebase/
+*-key.json
+firebase-dev-key.json
+firebase-prod-key.json
+dev-key-oneline.txt
+prod-key-oneline.txt
+
+# Node
+node_modules/
+npm-debug.log
+
+# Build
+Admin-wepApp/frontend/build/
+Admin-wepApp/frontend/.env.local
+Admin-wepApp/frontend/.env.*.local
