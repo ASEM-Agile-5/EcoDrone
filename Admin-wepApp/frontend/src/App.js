@@ -7,7 +7,7 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-		EcoDrone - Drone Management System (DEV) 1
+		Nana EcoDrone - Drone Management System (DEV) 1
         </p>
         <a
           className="App-link"
