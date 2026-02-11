@@ -46,4 +46,4 @@ function App() {
   );
 }
 
-export default App;
+export default App;// Backend connection enabled - Wed Feb 11 13:37:55 GMT 2026
