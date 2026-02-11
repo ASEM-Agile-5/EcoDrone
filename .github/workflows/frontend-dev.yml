@@ -30,7 +30,7 @@ jobs:
         env:
           CI: false
           REACT_APP_ENV: development
-          REACT_APP_API_URL: https://ecodrone-backend-dev-lwunguolhq-uc.a.rn.app
+          REACT_APP_API_URL: https://ecodrone-backend-dev-lwunguolhq-uc.a.run.app
 
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
