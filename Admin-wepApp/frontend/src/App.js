@@ -5,6 +5,8 @@ import { testBackendConnection } from './api';
 function App() {
   const [backendStatus, setBackendStatus] = useState('Checking...');
   const [backendColor, setBackendColor] = useState('orange');
+  console.log('API URL:', process.env.REACT_APP_API_URL);
+  console.log('All env vars:', process.env);
 
   useEffect(() => {
     // Test backend connection when component loads
