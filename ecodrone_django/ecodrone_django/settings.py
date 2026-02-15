@@ -56,6 +56,11 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = [
+    'https://ecodrone-backend-dev-lwunguolhq-uc.a.run.app',
+    'https://*.run.app',  # Trust all Cloud Run domains
+]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
