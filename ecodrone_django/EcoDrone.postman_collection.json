@@ -1,0 +1,662 @@
+{
+  "info": {
+    "_postman_id": "44de6f13-1306-49fd-8b8c-7f1427a8cf23",
+    "name": "EcoDrone",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "51594909"
+  },
+  "item": [
+    {
+      "name": "Order",
+      "item": [
+        {
+          "name": "Place Order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"user\": \"c21e14ec-56f8-4519-9a1c-fa94dc9e42c5\",\n    \"vendor\": 2,\n    \"order_time\": \"2023-10-27T10:00:00Z\",\n    \"location\": \"1 Lambert St\",\n    \"amount_paid\": 30.00\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}order/place-order",
+              "host": [
+                "{{BASE_URL}}order"
+              ],
+              "path": [
+                "place-order"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Order Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}order/details?order_id=ab185f44-745e-4a26-b1b8-c8ded307e961",
+              "host": [
+                "{{BASE_URL}}order"
+              ],
+              "path": [
+                "details"
+              ],
+              "query": [
+                {
+                  "key": "order_id",
+                  "value": "ab185f44-745e-4a26-b1b8-c8ded307e961"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Order By Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}order/status?status=in Progress",
+              "host": [
+                "{{BASE_URL}}order"
+              ],
+              "path": [
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "in Progress"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}order/all",
+              "host": [
+                "{{BASE_URL}}order"
+              ],
+              "path": [
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Set Order Status",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{   \"order_id\":\"4f299f0a-511a-408c-bdc4-f8edf793a962\",\n    \"status\":\"Completed\"}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}order/set-status",
+              "host": [
+                "{{BASE_URL}}order"
+              ],
+              "path": [
+                "set-status"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"patrick.amankwah@ashesi.edu.gh\",\n    \"username\": \"maddScientist\",\n    \"first_name\": \"Patrick\",\n    \"last_name\": \"Adu-Amankwah\",\n    \"terms_accepted\": true,\n    \"password\": \"P@$$123456\",\n    \"password_confirm\": \"P@$$123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://127.0.0.1:8000/user/register",
+              "protocol": "http",
+              "host": [
+                "127",
+                "0",
+                "0",
+                "1"
+              ],
+              "port": "8000",
+              "path": [
+                "user",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"patrick.amankwah@ashesi.edu.gh\",\n    \"password\": \"P@$$123456\"\n\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/user/login",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "user",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/user/get-user",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "user",
+                "get-user"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTE4YTEyMjUtYjY0MC00MTc4LTlhNzctZWQzZmE4MzBmNGJjIiwiZXhwIjoxNzcwNDcwMjAzLCJpYXQiOjE3NzA0NjY2MDN9.-Bb5lZTkXAjYEZWVzVv_iU0vaP1STVOLDc14mRu3n_k",
+                  "id": 0,
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User info Copy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/user/get-user",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "user",
+                "get-user"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTE4YTEyMjUtYjY0MC00MTc4LTlhNzctZWQzZmE4MzBmNGJjIiwiZXhwIjoxNzcwNDcwMjAzLCJpYXQiOjE3NzA0NjY2MDN9.-Bb5lZTkXAjYEZWVzVv_iU0vaP1STVOLDc14mRu3n_k",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Vendor",
+      "item": [
+        {
+          "name": "Register Vendor",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Akorno Classics\",\n  \"owned_by\": \"Prima Dona\",\n  \"vendor_contact\": \"+233541234567\",\n  \"owner_contact\": \"+233249876543\",\n  \"terms_agreed_at\": \"2023-10-27T10:00:00Z\",\n  \"status\": \"Active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}vendors/register",
+              "host": [
+                "{{BASE_URL}}vendors"
+              ],
+              "path": [
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vendors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}vendors/vendors",
+              "host": [
+                "{{BASE_URL}}vendors"
+              ],
+              "path": [
+                "vendors"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Menu Item",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": " {\n    \"vendor_id\": 2,\n    \"name\": \"Fried Rice and Chicken\",\n    \"price\": 30.99,\n    \"description\": \"Ghanaian Jollof with fried chicken and Salad\",\n    \"image_url\": \"https://example.com/images/camera.jpg\",\n    \"category_id\": 201\n  }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}vendors/menu/create",
+              "host": [
+                "{{BASE_URL}}vendors"
+              ],
+              "path": [
+                "menu",
+                "create"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Vendor Menu",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{BASE_URL}}vendors/menu/1",
+              "host": [
+                "{{BASE_URL}}vendors"
+              ],
+              "path": [
+                "menu",
+                "1"
+              ],
+              "query": [
+                {
+                  "key": "1",
+                  "value": null,
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Edit Vendor",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Jollof Rice and Chicken\",\n    \"price\": \"25.00\",\n    \"description\": \"Authenticate Home Jollof with Grilled Chicken\",\n    \"image_url\": \"https://example.com/images/camera.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}vendors/menu/update/8",
+              "host": [
+                "{{BASE_URL}}vendors"
+              ],
+              "path": [
+                "menu",
+                "update",
+                "8"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Vendor Copy",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": 8,\n    \"name\": \"Jollof Rice and Chicken\",\n    \"price\": \"25.00\",\n    \"description\": \"Authenticate Home Jollof with Grilled Chicken\",\n    \"image_url\": \"https://example.com/images/camera.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}vendors/menu/delete/7",
+              "host": [
+                "{{BASE_URL}}vendors"
+              ],
+              "path": [
+                "menu",
+                "delete",
+                "7"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Order by Vendor",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"vendor_id\": 8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}vendors/orders",
+              "host": [
+                "{{BASE_URL}}vendors"
+              ],
+              "path": [
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deactivate",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"vendor_id\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}vendors/deactivate",
+              "host": [
+                "{{BASE_URL}}vendors"
+              ],
+              "path": [
+                "deactivate"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Drone",
+      "item": [
+        {
+          "name": "Register Drone",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "    {\n      \"name\": \"Drone-Alpha\",\n      \"status\": \"Available\",\n      \"battery_level\": \"85%\",\n      \"current_location\": \"Base Station 1\",\n      \"last_flight\": \"2024-05-20T10:00:00Z\"\n    }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}drones/register",
+              "host": [
+                "{{BASE_URL}}drones"
+              ],
+              "path": [
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Vendors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}drones/list",
+              "host": [
+                "{{BASE_URL}}drones"
+              ],
+              "path": [
+                "list"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Details",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{BASE_URL}}drones/details?drone_id=ab185f44-745e-4a26-b1b8-c8ded307e961",
+              "host": [
+                "{{BASE_URL}}drones"
+              ],
+              "path": [
+                "details"
+              ],
+              "query": [
+                {
+                  "key": "1",
+                  "value": null,
+                  "disabled": true
+                },
+                {
+                  "key": "drone_id",
+                  "value": "ab185f44-745e-4a26-b1b8-c8ded307e961"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Edit Drone",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "    {\n      \"name\": \"Drone-Alpha\",\n      \"status\": \"Available\",\n      \"battery_level\": \"75%\",\n      \"current_location\": \"Base Station 1\",\n      \"last_flight\": \"2024-05-20T10:00:00Z\"\n    }",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}drones/update/1",
+              "host": [
+                "{{BASE_URL}}drones"
+              ],
+              "path": [
+                "update",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Drone",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": 8,\n    \"name\": \"Jollof Rice and Chicken\",\n    \"price\": \"25.00\",\n    \"description\": \"Authenticate Home Jollof with Grilled Chicken\",\n    \"image_url\": \"https://example.com/images/camera.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}vendors/deactivate/7",
+              "host": [
+                "{{BASE_URL}}vendors"
+              ],
+              "path": [
+                "deactivate",
+                "7"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Drone by Status",
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}drones/status?status=Available",
+              "host": [
+                "{{BASE_URL}}drones"
+              ],
+              "path": [
+                "status"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Available"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "FirebaseUrl",
+      "value": ""
+    }
+  ]
+}
