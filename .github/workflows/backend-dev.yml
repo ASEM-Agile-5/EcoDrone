@@ -76,8 +76,9 @@ jobs:
             --region us-central1 \
             --allow-unauthenticated \
             --port 8080 \
-            --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app" \
-            --set-secrets="SECRET_KEY=DJANGO_SECRET_KEY_DEV:latest"
+            --add-cloudsql-instances=${{ secrets.CLOUD_SQL_CONNECTION_NAME }} \
+            --set-env-vars="DEBUG=False,ALLOWED_HOSTS=.run.app,GAE_APPLICATION=true,DB_NAME=ecodrone_dev,CLOUD_SQL_CONNECTION_NAME=${{ secrets.CLOUD_SQL_CONNECTION_NAME }}" \
+            --set-secrets="SECRET_KEY=DJANGO_SECRET_KEY_DEV:latest,DB_PASSWORD=DB_PASSWORD_DEV:latest"
       
       - name: Get service URL
         run: |
