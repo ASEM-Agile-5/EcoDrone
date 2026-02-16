@@ -26,7 +26,11 @@ jobs:
 
       - name: Build project
         working-directory: ./Admin-wepApp/frontend
-        run: npm run build
+        run: |
+          echo "Starting build..."
+          npm run build
+          echo "Build completed"
+          ls -la dist/
         env:
           CI: false
           REACT_APP_ENV: development
