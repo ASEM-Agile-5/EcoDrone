@@ -25,7 +25,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'corsheaders',
-    'rest_framework'
+    'rest_framework',
+    'order_placement',
+    'dashboard',
+    'vendors',
+    'drone',
 ]
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY_MINUTES = 150
