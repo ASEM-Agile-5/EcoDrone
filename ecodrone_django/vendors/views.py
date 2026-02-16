@@ -95,8 +95,32 @@ class MenuCreateView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
- 
- 
+        
+class CreateCategoryView(APIView):
+     def post(self, request):
+        User = get_user_model() 
+        token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
+        if not token:
+            return Response({"error": "Token not found"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            user_id = payload['user_id']
+            user = User.objects.get(id=user_id)
+            if not user.is_superuser:
+                return Response({"error": "Only superusers can create categories"}, status=status.HTTP_403_FORBIDDEN)
+
+            if not user.is_superuser:
+                return Response({"error": "Only superusers can create categories"}, status=status.HTTP_403_FORBIDDEN)
+            
+            serializer = CategorySerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        
 class MenuDetailView(APIView):
 
     def get(self, request, vendor_id):
