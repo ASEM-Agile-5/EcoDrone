@@ -30,7 +30,7 @@ jobs:
           echo "Starting build..."
           npm run build
           echo "Build completed"
-          ls -la build/
+          ls -la dist/
         env:
           CI: false
           REACT_APP_ENV: development
