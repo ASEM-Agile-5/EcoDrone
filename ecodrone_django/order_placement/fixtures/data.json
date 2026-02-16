@@ -1,0 +1,89 @@
+[
+  {
+    "model": "order_placement.vendor",
+    "pk": 1,
+    "fields": {
+      "name": "Burger King",
+      "ratings": 4.5,
+      "eta": 30
+    }
+  },
+  {
+    "model": "order_placement.vendor",
+    "pk": 2,
+    "fields": {
+      "name": "Pizza Hut",
+      "ratings": 4.2,
+      "eta": 45
+    }
+  },
+  {
+    "model": "order_placement.vendor",
+    "pk": 3,
+    "fields": {
+      "name": "KFC",
+      "ratings": 4.0,
+      "eta": 25
+    }
+  },
+  {
+    "model": "order_placement.menu",
+    "pk": 1,
+    "fields": {
+      "vendor": 1,
+      "name": "Whopper Meal",
+      "price": 9.99,
+      "description": "Flame-grilled beef burger with fries and a drink"
+    }
+  },
+  {
+    "model": "order_placement.menu",
+    "pk": 2,
+    "fields": {
+      "vendor": 1,
+      "name": "Chicken Royale",
+      "price": 8.99,
+      "description": "Crispy chicken burger with lettuce and mayo"
+    }
+  },
+  {
+    "model": "order_placement.menu",
+    "pk": 3,
+    "fields": {
+      "vendor": 2,
+      "name": "Pepperoni Feast",
+      "price": 12.5,
+      "description": "Large pizza loaded with pepperoni and cheese"
+    }
+  },
+  {
+    "model": "order_placement.menu",
+    "pk": 4,
+    "fields": {
+      "vendor": 2,
+      "name": "Vegetarian Supreme",
+      "price": 11.5,
+      "description": "Vegetarian pizza with mushrooms, peppers, and onions"
+    }
+  },
+  {
+    "model": "order_placement.menu",
+    "pk": 5,
+    "fields": {
+      "vendor": 3,
+      "name": "Zinger Box Meal",
+      "price": 10.99,
+      "description": "Zinger burger, 2 hot wings, fries, and a drink"
+    }
+  },
+  {
+    "model": "order_placement.menu",
+    "pk": 6,
+    "fields": {
+      "vendor": 3,
+      "name": "Popcorn Chicken",
+      "price": 5.99,
+      "description": "Bite-sized pieces of crispy chicken"
+    }
+  }
+]
