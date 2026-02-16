@@ -5,37 +5,38 @@ on:
     branches:
       - dev
     paths:
-      - 'Admin-wepApp/frontend/**'
+      - "Admin-wepApp/frontend/**"
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
-      
+          node-version: "20"
+
       - name: Install dependencies
         working-directory: ./Admin-wepApp/frontend
         run: npm ci
-      
+
       - name: Build project
         working-directory: ./Admin-wepApp/frontend
         run: npm run build
         env:
           CI: false
           REACT_APP_ENV: development
-      
+          REACT_APP_API_URL: https://ecodrone-backend-dev-lwunguolhq-uc.a.run.app
+
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
-          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}'
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_DEV }}"
           projectId: ${{ secrets.FIREBASE_PROJECT_ID_DEV }}
           channelId: live
-          entryPoint: './Admin-wepApp'
+          entryPoint: "./Admin-wepApp"
