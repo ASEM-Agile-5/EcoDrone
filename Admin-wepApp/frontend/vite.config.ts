@@ -10,6 +10,16 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+    server: {
+    proxy: {
+      '/api/': {
+        target: 'https://ecodrone-backend-dev-lwunguolhq-uc.a.run.app/',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      }
+    }
+  },
   resolve: {
     alias: {
       // Alias @ to the src directory

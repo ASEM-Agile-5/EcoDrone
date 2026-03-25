@@ -1,7 +1,11 @@
 import { RouterProvider } from "react-router";
 import { router } from "./routes";
-import React from "react";
+import { UserProvider } from "./context/UserContext";
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <UserProvider>
+      <RouterProvider router={router} />
+    </UserProvider>
+  );
 }

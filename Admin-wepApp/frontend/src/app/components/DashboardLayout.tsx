@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
+import { useUser } from "../context/UserContext";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -27,7 +28,11 @@ const navigation = [
   { name: "Drones", href: "/dashboard/drones", icon: Radio },
   { name: "Vendors", href: "/dashboard/vendors", icon: Store },
   { name: "Reports", href: "/dashboard/reports", icon: FileText },
-  { name: "Environmental Monitoring", href: "/dashboard/environmental", icon: Leaf },
+  {
+    name: "Environmental Monitoring",
+    href: "/dashboard/environmental",
+    icon: Leaf,
+  },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
@@ -35,11 +40,19 @@ export function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user } = useUser();
+
+  // console.log(user);
 
   return (
-    <div className="min-h-screen bg-gray-50" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div
+      className="min-h-screen bg-gray-50"
+      style={{ fontFamily: "Inter, sans-serif" }}
+    >
       {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 bg-[#8A1538] text-white flex flex-col transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-64'}`}>
+      <div
+        className={`fixed inset-y-0 left-0 bg-[#8A1538] text-white flex flex-col transition-all duration-300 ${isCollapsed ? "w-20" : "w-64"}`}
+      >
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-[#751130] justify-between">
           {!isCollapsed && (
@@ -72,7 +85,7 @@ export function DashboardLayout() {
                   isActive
                     ? "bg-white text-[#8A1538]"
                     : "text-white/90 hover:bg-[#751130]"
-                } ${isCollapsed ? 'justify-center' : ''}`}
+                } ${isCollapsed ? "justify-center" : ""}`}
                 title={isCollapsed ? item.name : undefined}
               >
                 <item.icon className="w-5 h-5 flex-shrink-0" />
@@ -87,7 +100,7 @@ export function DashboardLayout() {
           {/* Collapse Button */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-white/90 hover:bg-[#751130] ${isCollapsed ? 'justify-center' : ''}`}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-white/90 hover:bg-[#751130] ${isCollapsed ? "justify-center" : ""}`}
             title={isCollapsed ? "Expand menu" : "Collapse menu"}
           >
             {isCollapsed ? (
@@ -99,16 +112,20 @@ export function DashboardLayout() {
               </>
             )}
           </button>
-          <div className="text-xs text-white/60 text-center">{isCollapsed ? '©' : '© 2026 Agile5'}</div>
+          <div className="text-xs text-white/60 text-center">
+            {isCollapsed ? "©" : "© 2026 Agile5"}
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className={`transition-all duration-300 ${isCollapsed ? 'ml-20' : 'ml-64'}`}>
+      <div
+        className={`transition-all duration-300 ${isCollapsed ? "ml-20" : "ml-64"}`}
+      >
         {/* Header */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
           <div>
-            <h2 className="text-xl" style={{ color: '#8A1538' }}>
+            <h2 className="text-xl" style={{ color: "#8A1538" }}>
               Admin Dashboard
             </h2>
           </div>
@@ -117,21 +134,24 @@ export function DashboardLayout() {
           <DropdownMenu>
             <DropdownMenuTrigger className="flex items-center gap-3 hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors">
               <div className="w-8 h-8 rounded-full bg-[#8A1538] flex items-center justify-center">
-                <span className="text-white text-sm">AD</span>
+                <span className="text-white text-sm">
+                  {}
+                  {}
+                </span>
               </div>
               <div className="text-left">
                 <div className="text-sm">Admin User</div>
-                <div className="text-xs text-gray-500">admin@ashesi.edu.gh</div>
+                <div className="text-xs text-gray-500">{}</div>
               </div>
               <ChevronDown className="w-4 h-4 text-gray-400" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => navigate('/dashboard/settings')}>
+              <DropdownMenuItem onClick={() => navigate("/dashboard/settings")}>
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/')}>
+              <DropdownMenuItem onClick={() => navigate("/")}>
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </DropdownMenuItem>
