@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft, Plus, Edit, Trash2, ShoppingBag } from "lucide-react";
 import { Button } from "../components/ui/button";
@@ -12,12 +12,16 @@ import {
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import React from "react";
-import { Category, MenuItem } from "../models/vendors";
-import {
-  addVendorMenuAPI,
-  getCategoriesAPI,
-  getVendorMenuAPI,
-} from "../services/services";
+
+interface MenuItem {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  description: string;
+  available: boolean;
+  imageUrl?: string;
+}
 
 // Mock menu data for different vendors
 const mockMenuData: { [key: string]: MenuItem[] } = {
@@ -29,8 +33,7 @@ const mockMenuData: { [key: string]: MenuItem[] } = {
       price: 8.5,
       description: "Strong and rich espresso shot",
       available: true,
-      imageUrl:
-        "https://images.unsplash.com/photo-1645445644664-8f44112f334c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NzA5NzIyNzl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      imageUrl: "https://images.unsplash.com/photo-1645445644664-8f44112f334c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxlc3ByZXNzbyUyMGNvZmZlZSUyMGN1cHxlbnwxfHx8fDE3NzA5NzIyNzl8MA&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
       id: "ITEM-002",
@@ -39,8 +42,7 @@ const mockMenuData: { [key: string]: MenuItem[] } = {
       price: 12.0,
       description: "Classic Italian coffee with steamed milk",
       available: true,
-      imageUrl:
-        "https://images.unsplash.com/photo-1667388363683-a07bbf0c84b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXBwdWNjaW5vJTIwY29mZmVlJTIwbGF0dGUlMjBhcnR8ZW58MXx8fHwxNzcwOTYxMzE4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      imageUrl: "https://images.unsplash.com/photo-1667388363683-a07bbf0c84b1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXBwdWNjaW5vJTIwY29mZmVlJTIwbGF0dGUlMjBhcnR8ZW58MXx8fHwxNzcwOTYxMzE4fDA&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
       id: "ITEM-003",
@@ -49,8 +51,7 @@ const mockMenuData: { [key: string]: MenuItem[] } = {
       price: 6.5,
       description: "Buttery and flaky French pastry",
       available: true,
-      imageUrl:
-        "https://images.unsplash.com/photo-1675125530520-cbd142b630b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnklMjBmcmVuY2h8ZW58MXx8fHwxNzcwOTc2NzM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      imageUrl: "https://images.unsplash.com/photo-1675125530520-cbd142b630b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjcm9pc3NhbnQlMjBwYXN0cnklMjBmcmVuY2h8ZW58MXx8fHwxNzcwOTc2NzM5fDA&ixlib=rb-4.1.0&q=80&w=1080",
     },
   ],
   "VND-002": [
@@ -61,8 +62,7 @@ const mockMenuData: { [key: string]: MenuItem[] } = {
       price: 18.5,
       description: "Fresh romaine with classic Caesar dressing",
       available: true,
-      imageUrl:
-        "https://images.unsplash.com/photo-1739436776460-35f309e3f887?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYWVzYXIlMjBzYWxhZCUyMGZyZXNofGVufDF8fHx8MTc3MDk2MDQzNXww&ixlib=rb-4.1.0&q=80&w=1080",
+      imageUrl: "https://images.unsplash.com/photo-1739436776460-35f309e3f887?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYWVzYXIlMjBzYWxhZCUyMGZyZXNofGVufDF8fHx8MTc3MDk2MDQzNXww&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
       id: "ITEM-005",
@@ -71,8 +71,7 @@ const mockMenuData: { [key: string]: MenuItem[] } = {
       price: 25.0,
       description: "Grilled chicken with lettuce and tomato",
       available: true,
-      imageUrl:
-        "https://images.unsplash.com/photo-1597579018905-8c807adfbed4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmlsbGVkJTIwY2hpY2tlbiUyMHNhbmR3aWNofGVufDF8fHx8MTc3MDk2NTk0OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      imageUrl: "https://images.unsplash.com/photo-1597579018905-8c807adfbed4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmlsbGVkJTIwY2hpY2tlbiUyMHNhbmR3aWNofGVufDF8fHx8MTc3MDk2NTk0OHww&ixlib=rb-4.1.0&q=80&w=1080",
     },
   ],
   "VND-003": [
@@ -83,8 +82,7 @@ const mockMenuData: { [key: string]: MenuItem[] } = {
       price: 15.0,
       description: "Fresh mango blended with yogurt",
       available: true,
-      imageUrl:
-        "https://images.unsplash.com/photo-1575159240102-4331f59433ac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYW5nbyUyMHNtb290aGllJTIwZHJpbmt8ZW58MXx8fHwxNzcwOTM1NzU5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      imageUrl: "https://images.unsplash.com/photo-1575159240102-4331f59433ac?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYW5nbyUyMHNtb290aGllJTIwZHJpbmt8ZW58MXx8fHwxNzcwOTM1NzU5fDA&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
       id: "ITEM-007",
@@ -93,8 +91,7 @@ const mockMenuData: { [key: string]: MenuItem[] } = {
       price: 16.5,
       description: "Spinach, kale, and green apple",
       available: true,
-      imageUrl:
-        "https://images.unsplash.com/photo-1588465967258-636b1c445f4e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmVlbiUyMHNtb290aGllJTIwZGV0b3h8ZW58MXx8fHwxNzcwOTc2NzQwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      imageUrl: "https://images.unsplash.com/photo-1588465967258-636b1c445f4e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncmVlbiUyMHNtb290aGllJTIwZGV0b3h8ZW58MXx8fHwxNzcwOTc2NzQwfDA&ixlib=rb-4.1.0&q=80&w=1080",
     },
   ],
   "VND-004": [
@@ -105,11 +102,11 @@ const mockMenuData: { [key: string]: MenuItem[] } = {
       price: 28.0,
       description: "Classic tomato and mozzarella",
       available: false,
-      imageUrl:
-        "https://images.unsplash.com/photo-1680405620826-83b0f0f61b28?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYXJnaGVyaXRhJTIwcGl6emElMjBpdGFsaWFufGVufDF8fHx8MTc3MDk3Njc0MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      imageUrl: "https://images.unsplash.com/photo-1680405620826-83b0f0f61b28?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtYXJnaGVyaXRhJTIwcGl6emElMjBpdGFsaWFufGVufDF8fHx8MTc3MDk3Njc0MXww&ixlib=rb-4.1.0&q=80&w=1080",
     },
   ],
 };
+
 const vendorNames: { [key: string]: string } = {
   "VND-001": "Campus Café",
   "VND-002": "Bistro",
@@ -120,10 +117,11 @@ const vendorNames: { [key: string]: string } = {
 export function VendorMenuPage() {
   const { vendorId } = useParams<{ vendorId: string }>();
   const navigate = useNavigate();
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(
+    vendorId ? mockMenuData[vendorId] || [] : []
+  );
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -133,63 +131,22 @@ export function VendorMenuPage() {
     imageUrl: "",
   });
 
-  const fetchMenuItems = async () => {
-    if (!vendorId) return;
-    try {
-      const data = await getVendorMenuAPI(vendorId);
-      setMenuItems(data || []);
-    } catch (error) {
-      console.error("Failed to fetch menu items:", error);
-      setMenuItems([]);
-    }
-  };
+  const vendorName = vendorId ? vendorNames[vendorId] || "Unknown Vendor" : "Unknown Vendor";
 
-  useEffect(() => {
-    fetchMenuItems();
-  }, [vendorId]);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const data = await getCategoriesAPI();
-        setCategories(data || []);
-      } catch (error) {
-        console.error("Failed to fetch categories:", error);
-        setCategories([]);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  const vendorName = vendorId
-    ? vendorNames[vendorId] || "Unknown Vendor"
-    : "Unknown Vendor";
-
-  const handleAddItem = async () => {
+  const handleAddItem = () => {
     if (formData.name.trim() && formData.price) {
-      const newItem = {
-        vendor_id: parseInt(vendorId!) || 0,
+      const newItem: MenuItem = {
+        id: `ITEM-${String(Date.now()).slice(-3)}`,
         name: formData.name,
+        category: formData.category,
         price: parseFloat(formData.price),
         description: formData.description,
-        image_url: formData.imageUrl,
-        category_id: parseInt(formData.category) || 0,
+        available: true,
+        imageUrl: formData.imageUrl,
       };
-      try {
-        const result = await addVendorMenuAPI(newItem);
-        console.log("Menu item added:", result);
-        setShowAddDialog(false);
-        setFormData({
-          name: "",
-          category: "",
-          price: "",
-          description: "",
-          imageUrl: "",
-        });
-        await fetchMenuItems();
-      } catch (error) {
-        console.error("Failed to add menu item:", error);
-      }
+      setMenuItems([...menuItems, newItem]);
+      setFormData({ name: "", category: "", price: "", description: "", imageUrl: "" });
+      setShowAddDialog(false);
     }
   };
 
@@ -198,23 +155,13 @@ export function VendorMenuPage() {
       const updatedItem: MenuItem = {
         ...editingItem,
         name: formData.name,
-        category_id: parseInt(formData.category) || 0,
+        category: formData.category,
         price: parseFloat(formData.price),
         description: formData.description,
-        image_url: formData.imageUrl,
+        imageUrl: formData.imageUrl,
       };
-      setMenuItems(
-        menuItems.map((item) =>
-          item.id === editingItem.id ? updatedItem : item,
-        ),
-      );
-      setFormData({
-        name: "",
-        category: "",
-        price: "",
-        description: "",
-        imageUrl: "",
-      });
+      setMenuItems(menuItems.map((item) => (item.id === editingItem.id ? updatedItem : item)));
+      setFormData({ name: "", category: "", price: "", description: "", imageUrl: "" });
       setEditingItem(null);
       setShowEditDialog(false);
     }
@@ -229,14 +176,12 @@ export function VendorMenuPage() {
   const toggleAvailability = (itemId: string) => {
     setMenuItems(
       menuItems.map((item) =>
-        item.id === itemId ? { ...item, available: !item.available } : item,
-      ),
+        item.id === itemId ? { ...item, available: !item.available } : item
+      )
     );
   };
 
-  const menuCategories = Array.from(
-    new Set(menuItems.map((item) => item.category_id)),
-  );
+  const categories = Array.from(new Set(menuItems.map((item) => item.category)));
 
   return (
     <div className="space-y-6">
@@ -258,13 +203,7 @@ export function VendorMenuPage() {
         </div>
         <Button
           onClick={() => {
-            setFormData({
-              name: "",
-              category: "",
-              price: "",
-              description: "",
-              imageUrl: "",
-            });
+            setFormData({ name: "", category: "", price: "", description: "", imageUrl: "" });
             setShowAddDialog(true);
           }}
           className="bg-[#8A1538] hover:bg-[#6d1029] text-white"
@@ -288,15 +227,13 @@ export function VendorMenuPage() {
         </div>
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
           <div className="text-sm text-gray-700">Categories</div>
-          <div className="text-2xl mt-1 text-gray-700">
-            {menuCategories.length}
-          </div>
+          <div className="text-2xl mt-1 text-gray-700">{categories.length}</div>
         </div>
       </div>
 
       {/* Menu Items by Category */}
-      {menuCategories.length > 0 ? (
-        menuCategories.map((category) => (
+      {categories.length > 0 ? (
+        categories.map((category) => (
           <div key={category} className="space-y-4">
             <h2 className="text-xl" style={{ color: "#8A1538" }}>
               {category || "Uncategorized"}
@@ -357,23 +294,17 @@ export function VendorMenuPage() {
                         </button>
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">
-                      {item.description}
-                    </p>
+                    <p className="text-sm text-gray-600 mb-3">{item.description}</p>
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div
-                        className="text-lg font-semibold"
-                        style={{ color: "#8A1538" }}
-                      >
-                        ₵{item.price}
+                      <div className="text-lg font-semibold" style={{ color: "#8A1538" }}>
+                        ₵{item.price.toFixed(2)}
                       </div>
                       <button
                         onClick={() => toggleAvailability(item.id)}
-                        className={`px-3 py-1 rounded-full text-xs transition-colors ${
-                          item.available
+                        className={`px-3 py-1 rounded-full text-xs transition-colors ${item.available
                             ? "bg-green-100 text-green-700 hover:bg-green-200"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                        }`}
+                          }`}
                       >
                         {item.available ? "Available" : "Unavailable"}
                       </button>
@@ -389,9 +320,7 @@ export function VendorMenuPage() {
           <h3 className="text-lg mb-2" style={{ color: "#8A1538" }}>
             No menu items yet
           </h3>
-          <p className="text-gray-600">
-            Add your first menu item to get started
-          </p>
+          <p className="text-gray-600">Add your first menu item to get started</p>
         </div>
       )}
 
@@ -400,9 +329,7 @@ export function VendorMenuPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Menu Item</DialogTitle>
-            <DialogDescription>
-              Add a new item to the vendor's menu.
-            </DialogDescription>
+            <DialogDescription>Add a new item to the vendor's menu.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="space-y-2">
@@ -411,28 +338,17 @@ export function VendorMenuPage() {
                 id="item-name"
                 placeholder="e.g., Cappuccino"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="item-category">Category</Label>
-              <select
+              <Input
                 id="item-category"
+                placeholder="e.g., Beverages"
                 value={formData.category}
-                onChange={(e) =>
-                  setFormData({ ...formData, category: e.target.value })
-                }
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <option value="">Select a category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="item-price">Price (₵)</Label>
@@ -442,9 +358,7 @@ export function VendorMenuPage() {
                 step="0.50"
                 placeholder="e.g., 12.00"
                 value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -453,9 +367,7 @@ export function VendorMenuPage() {
                 id="item-description"
                 placeholder="Brief description"
                 value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -464,9 +376,7 @@ export function VendorMenuPage() {
                 id="item-image-url"
                 placeholder="URL of the item image"
                 value={formData.imageUrl}
-                onChange={(e) =>
-                  setFormData({ ...formData, imageUrl: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
               />
             </div>
             <Button
@@ -493,28 +403,17 @@ export function VendorMenuPage() {
                 id="edit-item-name"
                 placeholder="e.g., Cappuccino"
                 value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-item-category">Category</Label>
-              <select
+              <Input
                 id="edit-item-category"
+                placeholder="e.g., Beverages"
                 value={formData.category}
-                onChange={(e) =>
-                  setFormData({ ...formData, category: e.target.value })
-                }
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <option value="">Select a category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-item-price">Price (₵)</Label>
@@ -524,9 +423,7 @@ export function VendorMenuPage() {
                 step="0.50"
                 placeholder="e.g., 12.00"
                 value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -535,9 +432,7 @@ export function VendorMenuPage() {
                 id="edit-item-description"
                 placeholder="Brief description"
                 value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
             <div className="space-y-2">
@@ -546,9 +441,7 @@ export function VendorMenuPage() {
                 id="edit-item-image-url"
                 placeholder="URL of the item image"
                 value={formData.imageUrl}
-                onChange={(e) =>
-                  setFormData({ ...formData, imageUrl: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
               />
             </div>
             <Button
