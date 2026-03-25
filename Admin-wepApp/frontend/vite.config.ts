@@ -13,7 +13,7 @@ export default defineConfig({
     server: {
     proxy: {
       '/api/': {
-        target: 'http://localhost:8000/',
+        target: 'https://ecodrone-backend-dev-lwunguolhq-uc.a.run.app/',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, ''),
