@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Radio,
   Battery,
@@ -13,125 +13,98 @@ import {
   Trash2,
 } from "lucide-react";
 import React from "react";
-import { Drone } from "../models/drones";
-import { addDroneAPI, editDroneAPI, getDronesAPI } from "../services/services";
-const initialDrones: Drone[] = [
-  //   {
-  //     id: "DRN-001",
-  //     name: "EcoDrone Alpha",
-  //     model: "ED-X1",
-  //     status: "Active",
-  //     battery: 85,
-  //     location: "North Campus",
-  //     lastFlight: "5 min ago",
-  //     totalFlights: 342,
-  //     maxPayload: "2.5kg",
-  //   },
-  //   {
-  //     id: "DRN-002",
-  //     name: "EcoDrone Beta",
-  //     model: "ED-X1",
-  //     status: "Charging",
-  //     battery: 45,
-  //     location: "Charging Station 1",
-  //     lastFlight: "15 min ago",
-  //     totalFlights: 298,
-  //     maxPayload: "2.5kg",
-  //   },
-  //   {
-  //     id: "DRN-003",
-  //     name: "EcoDrone Gamma",
-  //     model: "ED-X2",
-  //     status: "Active",
-  //     battery: 92,
-  //     location: "South Campus",
-  //     lastFlight: "2 min ago",
-  //     totalFlights: 421,
-  //     maxPayload: "3.0kg",
-  //   },
-  //   {
-  //     id: "DRN-004",
-  //     name: "EcoDrone Delta",
-  //     model: "ED-X1",
-  //     status: "Idle",
-  //     battery: 100,
-  //     location: "Main Hub",
-  //     lastFlight: "45 min ago",
-  //     totalFlights: 267,
-  //     maxPayload: "2.5kg",
-  //   },
-  //   {
-  //     id: "DRN-005",
-  //     name: "EcoDrone Epsilon",
-  //     model: "ED-X2",
-  //     status: "Maintenance",
-  //     battery: 0,
-  //     location: "Maintenance Bay",
-  //     lastFlight: "2 hours ago",
-  //     totalFlights: 389,
-  //     maxPayload: "3.0kg",
-  //   },
-  //   {
-  //     id: "DRN-006",
-  //     name: "EcoDrone Zeta",
-  //     model: "ED-X1",
-  //     status: "Active",
-  //     battery: 67,
-  //     location: "East Campus",
-  //     lastFlight: "8 min ago",
-  //     totalFlights: 312,
-  //     maxPayload: "2.5kg",
-  //   },
-];
+
+interface Drone {
+  id: string;
+  name: string;
+  model: string;
+  status: "Active" | "Idle" | "Charging" | "Maintenance";
+  battery: number;
+  location: string;
+  lastFlight: string;
+  totalFlights: number;
+  maxPayload: string;
+}
+
 export function DronesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [name, setName] = useState("");
-  const [model, setModel] = useState("");
-  const [maxPayload, setMaxPayload] = useState("");
   const [editingDrone, setEditingDrone] = useState<Drone | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Drone>>({});
 
-  const [drones, setDrones] = useState<Drone[]>(initialDrones);
-
-  useEffect(() => {
-    const fetchDrones = async () => {
-      try {
-        const data = await getDronesAPI();
-        setDrones(data);
-      } catch (error) {
-        console.error("Error fetching drones:", error);
-      }
-    };
-    fetchDrones();
-  }, []);
-
-  const handleEditDrone = async (id: string) => {
-    try {
-      const response = await editDroneAPI(id, name, model, maxPayload);
-      if (response.status === 200) {
-        setEditingDrone(null);
-      }
-    } catch (error) {
-      console.error("Error adding drone:", error);
-    }
-  };
-  const handleAddDrone = async () => {
-    try {
-      const response = await addDroneAPI(name, model, maxPayload);
-      if (response.status === 201) {
-        setShowAddModal(false);
-      }
-    } catch (error) {
-      console.error("Error adding drone:", error);
-    }
-  };
+  const [drones, setDrones] = useState<Drone[]>([
+    {
+      id: "DRN-001",
+      name: "EcoDrone Alpha",
+      model: "ED-X1",
+      status: "Active",
+      battery: 85,
+      location: "North Campus",
+      lastFlight: "5 min ago",
+      totalFlights: 342,
+      maxPayload: "2.5kg",
+    },
+    {
+      id: "DRN-002",
+      name: "EcoDrone Beta",
+      model: "ED-X1",
+      status: "Charging",
+      battery: 45,
+      location: "Charging Station 1",
+      lastFlight: "15 min ago",
+      totalFlights: 298,
+      maxPayload: "2.5kg",
+    },
+    {
+      id: "DRN-003",
+      name: "EcoDrone Gamma",
+      model: "ED-X2",
+      status: "Active",
+      battery: 92,
+      location: "South Campus",
+      lastFlight: "2 min ago",
+      totalFlights: 421,
+      maxPayload: "3.0kg",
+    },
+    {
+      id: "DRN-004",
+      name: "EcoDrone Delta",
+      model: "ED-X1",
+      status: "Idle",
+      battery: 100,
+      location: "Main Hub",
+      lastFlight: "45 min ago",
+      totalFlights: 267,
+      maxPayload: "2.5kg",
+    },
+    {
+      id: "DRN-005",
+      name: "EcoDrone Epsilon",
+      model: "ED-X2",
+      status: "Maintenance",
+      battery: 0,
+      location: "Maintenance Bay",
+      lastFlight: "2 hours ago",
+      totalFlights: 389,
+      maxPayload: "3.0kg",
+    },
+    {
+      id: "DRN-006",
+      name: "EcoDrone Zeta",
+      model: "ED-X1",
+      status: "Active",
+      battery: 67,
+      location: "East Campus",
+      lastFlight: "8 min ago",
+      totalFlights: 312,
+      maxPayload: "2.5kg",
+    },
+  ]);
 
   const getBatteryIcon = (battery: number) => {
     if (battery <= 20) return <BatteryLow className="w-5 h-5 text-red-500" />;
-    if (battery <= 50)
-      return <BatteryMedium className="w-5 h-5 text-amber-500" />;
+    if (battery <= 50) return <BatteryMedium className="w-5 h-5 text-amber-500" />;
     if (battery < 100) return <Battery className="w-5 h-5 text-green-500" />;
     return <BatteryFull className="w-5 h-5 text-green-500" />;
   };
@@ -285,11 +258,9 @@ export function DronesPage() {
                 <button
                   className="p-2 hover:bg-red-50 rounded-lg transition-colors"
                   onClick={() => {
-                    if (
-                      confirm(`Are you sure you want to delete ${drone.name}?`)
-                    ) {
+                    if (confirm(`Are you sure you want to delete ${drone.name}?`)) {
                       setDrones((prevDrones) =>
-                        prevDrones.filter((d) => d.id !== drone.id),
+                        prevDrones.filter((d) => d.id !== drone.id)
                       );
                     }
                   }}
@@ -306,7 +277,7 @@ export function DronesPage() {
                 <span className="text-sm text-gray-600">Status</span>
                 <span
                   className={`px-3 py-1 rounded-full text-xs border ${getStatusColor(
-                    drone.status,
+                    drone.status
                   )}`}
                 >
                   {drone.status}
@@ -325,13 +296,12 @@ export function DronesPage() {
               {/* Battery Progress Bar */}
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className={`h-2 rounded-full transition-all ${
-                    drone.battery <= 20
+                  className={`h-2 rounded-full transition-all ${drone.battery <= 20
                       ? "bg-red-500"
                       : drone.battery <= 50
                         ? "bg-amber-500"
                         : "bg-green-500"
-                  }`}
+                    }`}
                   style={{ width: `${drone.battery}%` }}
                 ></div>
               </div>
@@ -365,7 +335,7 @@ export function DronesPage() {
                 <div>
                   <div className="text-xs text-gray-500">Max Payload</div>
                   <div className="text-lg" style={{ color: "#8A1538" }}>
-                    {drone.maxPayload} kg
+                    {drone.maxPayload}
                   </div>
                 </div>
               </div>
@@ -403,23 +373,16 @@ export function DronesPage() {
                   type="text"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
                   placeholder="e.g., EcoDrone Theta"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
                 />
               </div>
               <div>
                 <label className="block text-sm mb-1 text-gray-700">
                   Model
                 </label>
-                <select
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
-                >
-                  <option value="">Select a model</option>
-                  <option value="ED-X1">ED-X1</option>
-                  <option value="ED-X2">ED-X2</option>
-                  <option value="ED-X3">ED-X3</option>
+                <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]">
+                  <option>ED-X1</option>
+                  <option>ED-X2</option>
+                  <option>ED-X3</option>
                 </select>
               </div>
               <div>
@@ -430,8 +393,6 @@ export function DronesPage() {
                   type="text"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
                   placeholder="e.g., 2.5kg"
-                  value={maxPayload}
-                  onChange={(e) => setMaxPayload(e.target.value)}
                 />
               </div>
             </div>
@@ -443,7 +404,7 @@ export function DronesPage() {
                 Cancel
               </button>
               <button
-                onClick={() => handleAddDrone()}
+                onClick={() => setShowAddModal(false)}
                 className="flex-1 px-4 py-2 bg-[#8A1538] text-white rounded-lg hover:bg-[#751130] transition-colors"
               >
                 Add Drone
@@ -467,10 +428,12 @@ export function DronesPage() {
                 </label>
                 <input
                   type="text"
+                  value={editFormData.name}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, name: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
                   placeholder="e.g., EcoDrone Theta"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
                 />
               </div>
               <div>
@@ -478,14 +441,15 @@ export function DronesPage() {
                   Model
                 </label>
                 <select
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
+                  value={editFormData.model}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, model: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
                 >
-                  <option value="">Select a model</option>
-                  <option value="ED-X1">ED-X1</option>
-                  <option value="ED-X2">ED-X2</option>
-                  <option value="ED-X3">ED-X3</option>
+                  <option>ED-X1</option>
+                  <option>ED-X2</option>
+                  <option>ED-X3</option>
                 </select>
               </div>
               <div>
@@ -494,10 +458,12 @@ export function DronesPage() {
                 </label>
                 <input
                   type="text"
+                  value={editFormData.maxPayload}
+                  onChange={(e) =>
+                    setEditFormData({ ...editFormData, maxPayload: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
                   placeholder="e.g., 2.5kg"
-                  value={maxPayload}
-                  onChange={(e) => setMaxPayload(e.target.value)}
                 />
               </div>
             </div>
@@ -509,7 +475,15 @@ export function DronesPage() {
                 Cancel
               </button>
               <button
-                onClick={() => handleEditDrone(editingDrone?.id)}
+                onClick={() => {
+                  setEditingDrone(null);
+                  // Update the drone in the list
+                  setDrones((prevDrones) =>
+                    prevDrones.map((d) =>
+                      d.id === editingDrone.id ? { ...d, ...editFormData } : d
+                    )
+                  );
+                }}
                 className="flex-1 px-4 py-2 bg-[#8A1538] text-white rounded-lg hover:bg-[#751130] transition-colors"
               >
                 Save Changes

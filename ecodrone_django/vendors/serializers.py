@@ -7,11 +7,6 @@ class VendorSerializer(serializers.ModelSerializer):
         fields = ['id', 'vendor_id', 'name', 'registered_by', 'registration_time', 'menu_count', 'terms_agreed_at','owned_by', 'vendor_contact', 'owner_contact', 'volume_processed', 'value_processed', 'status']
         read_only_fields = ['id', 'vendor_id', 'registration_time', 'registered_by', 'menu_count', 'volume_processed', 'value_processed']
 
-class RegisterVendorSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Vendor
-        fields = ['name', 'owned_by', 'vendor_contact', 'owner_contact', "terms_agreed_at", "status"]
-        
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -29,8 +24,8 @@ class MenuSerializer(serializers.ModelSerializer):
     class Meta:
         model = Menu
         fields = ['id', 'name', 'price', 'description', 'image_url', 'category_id', 'vendor_id', 'status', 'date_added']
-        read_only_fields = ['id', 'status', 'date_added','vendor_id']
-        
+        read_only_fields = ['id', 'status', 'date_added']
+
 class MenuUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Menu
