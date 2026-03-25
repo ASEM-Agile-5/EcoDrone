@@ -1,0 +1,680 @@
+swagger: '2.0'
+info:
+  title: My API
+  description: API documentation
+  version: v1
+host: 127.0.0.1:8000
+schemes:
+- http
+basePath: /
+consumes:
+- application/json
+produces:
+- application/json
+securityDefinitions:
+  Basic:
+    type: basic
+security:
+- Basic: []
+paths:
+  /dashboard/stats:
+    get:
+      operationId: dashboard_stats_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - dashboard
+    parameters: []
+  /drones/deactivate/{drone_id}:
+    put:
+      operationId: drones_deactivate_update
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - drones
+    delete:
+      operationId: drones_deactivate_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+      - drones
+    parameters:
+    - name: drone_id
+      in: path
+      required: true
+      type: string
+  /drones/details/{drone_id}:
+    get:
+      operationId: drones_details_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - drones
+    parameters:
+    - name: drone_id
+      in: path
+      required: true
+      type: string
+  /drones/list:
+    get:
+      operationId: drones_list_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - drones
+    parameters: []
+  /drones/register:
+    post:
+      operationId: drones_register_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - drones
+    parameters: []
+  /drones/set-status:
+    get:
+      operationId: drones_set-status_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - drones
+    parameters: []
+  /drones/status:
+    get:
+      operationId: drones_status_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - drones
+    parameters: []
+  /drones/update/{drone_id}:
+    put:
+      operationId: drones_update_update
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - drones
+    delete:
+      operationId: drones_update_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+      - drones
+    parameters:
+    - name: drone_id
+      in: path
+      required: true
+      type: string
+  /order/all:
+    get:
+      operationId: order_all_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - order
+    parameters: []
+  /order/details:
+    get:
+      operationId: order_details_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - order
+    parameters: []
+  /order/menus:
+    get:
+      operationId: order_menus_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - order
+    parameters: []
+  /order/place-order:
+    post:
+      operationId: order_place-order_create
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/OrderRequest'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/Order'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+      tags:
+      - order
+    parameters: []
+  /order/set-status:
+    post:
+      operationId: order_set-status_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - order
+    parameters: []
+  /order/status:
+    get:
+      operationId: order_status_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - order
+    parameters: []
+  /order/user-orders:
+    get:
+      operationId: order_user-orders_list
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/UserOrder'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+      tags:
+      - order
+    parameters: []
+  /user/get-user:
+    get:
+      operationId: user_get-user_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - user
+    parameters: []
+  /user/login:
+    post:
+      operationId: user_login_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - user
+    parameters: []
+  /user/logout:
+    post:
+      operationId: user_logout_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - user
+    parameters: []
+  /user/register:
+    post:
+      operationId: user_register_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - user
+    parameters: []
+  /vendors/categories:
+    get:
+      operationId: vendors_categories_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - vendors
+    parameters: []
+  /vendors/category/create:
+    post:
+      operationId: vendors_category_create_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - vendors
+    parameters: []
+  /vendors/deactivate:
+    post:
+      operationId: vendors_deactivate_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - vendors
+    parameters: []
+  /vendors/menu/create:
+    post:
+      operationId: vendors_menu_create_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - vendors
+    parameters: []
+  /vendors/menu/delete/{id}:
+    put:
+      operationId: vendors_menu_delete_update
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - vendors
+    delete:
+      operationId: vendors_menu_delete_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+      - vendors
+    parameters:
+    - name: id
+      in: path
+      required: true
+      type: string
+  /vendors/menu/update/{vendor_id}:
+    put:
+      operationId: vendors_menu_update_update
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+      - vendors
+    delete:
+      operationId: vendors_menu_update_delete
+      description: ''
+      parameters: []
+      responses:
+        '204':
+          description: ''
+      tags:
+      - vendors
+    parameters:
+    - name: vendor_id
+      in: path
+      required: true
+      type: string
+  /vendors/menu/{vendor_id}:
+    get:
+      operationId: vendors_menu_read
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Menu'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+      tags:
+      - vendors
+    parameters:
+    - name: vendor_id
+      in: path
+      required: true
+      type: string
+  /vendors/orders:
+    post:
+      operationId: vendors_orders_create
+      description: ''
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+      - vendors
+    parameters: []
+  /vendors/register:
+    post:
+      operationId: vendors_register_create
+      description: ''
+      parameters:
+      - name: data
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/RegisterVendor'
+      responses:
+        '201':
+          description: ''
+          schema:
+            $ref: '#/definitions/Vendor'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+      tags:
+      - vendors
+    parameters: []
+  /vendors/vendors:
+    get:
+      operationId: vendors_vendors_list
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          schema:
+            $ref: '#/definitions/Vendor'
+        '400':
+          description: Bad request
+        '401':
+          description: Unauthorized
+      tags:
+      - vendors
+    parameters: []
+definitions:
+  OrderRequest:
+    required:
+    - vendor
+    - location
+    - total_amount
+    - timestamp
+    - user
+    type: object
+    properties:
+      vendor:
+        title: Vendor
+        type: integer
+      location:
+        title: Location
+        type: string
+        maxLength: 255
+        minLength: 1
+      total_amount:
+        title: Total amount
+        type: string
+        format: decimal
+      timestamp:
+        title: Timestamp
+        type: string
+        format: date-time
+      user:
+        title: User
+        type: string
+        format: uuid
+  Order:
+    required:
+    - user
+    - timestamp
+    - vendor
+    - location
+    - total_amount
+    type: object
+    properties:
+      order_id:
+        title: Order id
+        type: string
+        readOnly: true
+        minLength: 1
+      user:
+        title: User
+        type: string
+        format: uuid
+      timestamp:
+        title: Timestamp
+        type: string
+        format: date-time
+      vendor:
+        title: Vendor
+        type: integer
+      location:
+        title: Location
+        type: string
+        maxLength: 255
+        minLength: 1
+      total_amount:
+        title: Total amount
+        type: string
+        format: decimal
+      status:
+        title: Status
+        type: string
+        readOnly: true
+        minLength: 1
+      assigned_drone:
+        title: Assigned drone
+        type: string
+        maxLength: 100
+        x-nullable: true
+  UserOrder:
+    type: object
+    properties:
+      past_orders:
+        title: Past orders
+        type: string
+        readOnly: true
+      current_orders:
+        title: Current orders
+        type: string
+        readOnly: true
+  Menu:
+    required:
+    - name
+    - price
+    - description
+    type: object
+    properties:
+      id:
+        title: ID
+        type: integer
+        readOnly: true
+      name:
+        title: Name
+        type: string
+        maxLength: 255
+        minLength: 1
+      price:
+        title: Price
+        type: string
+        format: decimal
+      description:
+        title: Description
+        type: string
+        minLength: 1
+      image_url:
+        title: Image url
+        type: string
+        format: uri
+        maxLength: 500
+        x-nullable: true
+      category_id:
+        title: Category id
+        type: integer
+        x-nullable: true
+      vendor_id:
+        title: Vendor id
+        type: integer
+        x-nullable: true
+      status:
+        title: Status
+        type: string
+        readOnly: true
+        minLength: 1
+      date_added:
+        title: Date added
+        type: string
+        format: date-time
+        readOnly: true
+  RegisterVendor:
+    required:
+    - name
+    - owned_by
+    - vendor_contact
+    - owner_contact
+    type: object
+    properties:
+      name:
+        title: Name
+        type: string
+        maxLength: 255
+        minLength: 1
+      owned_by:
+        title: Owned by
+        type: string
+        maxLength: 100
+        minLength: 1
+      vendor_contact:
+        title: Vendor contact
+        type: string
+        maxLength: 15
+        minLength: 1
+      owner_contact:
+        title: Owner contact
+        type: string
+        maxLength: 15
+        minLength: 1
+      terms_agreed_at:
+        title: Terms agreed at
+        type: string
+        format: date-time
+        x-nullable: true
+      status:
+        title: Status
+        type: string
+        maxLength: 20
+        minLength: 1
+  Vendor:
+    required:
+    - name
+    - owned_by
+    - vendor_contact
+    - owner_contact
+    type: object
+    properties:
+      id:
+        title: Id
+        type: integer
+        readOnly: true
+      vendor_id:
+        title: Vendor id
+        type: string
+        readOnly: true
+        minLength: 1
+      name:
+        title: Name
+        type: string
+        maxLength: 255
+        minLength: 1
+      registered_by:
+        title: Registered by
+        type: string
+        format: uuid
+        readOnly: true
+        x-nullable: true
+      registration_time:
+        title: Registration time
+        type: string
+        format: date-time
+        readOnly: true
+      menu_count:
+        title: Menu count
+        type: integer
+        readOnly: true
+      terms_agreed_at:
+        title: Terms agreed at
+        type: string
+        format: date-time
+        x-nullable: true
+      owned_by:
+        title: Owned by
+        type: string
+        maxLength: 100
+        minLength: 1
+      vendor_contact:
+        title: Vendor contact
+        type: string
+        maxLength: 15
+        minLength: 1
+      owner_contact:
+        title: Owner contact
+        type: string
+        maxLength: 15
+        minLength: 1
+      volume_processed:
+        title: Volume processed
+        type: integer
+        readOnly: true
+      value_processed:
+        title: Value processed
+        type: string
+        format: decimal
+        readOnly: true
+      status:
+        title: Status
+        type: string
+        maxLength: 20
+        minLength: 1

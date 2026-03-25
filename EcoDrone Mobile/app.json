@@ -1,0 +1,28 @@
+{
+  "expo": {
+    "name": "EcoDrone",
+    "slug": "ecodrone-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#8A1538"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ashesi.ecodrone"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#8A1538"
+      },
+      "package": "com.ashesi.ecodrone"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": []
+  }
+}
