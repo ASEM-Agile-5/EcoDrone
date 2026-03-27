@@ -15,74 +15,7 @@ import {
 import React from "react";
 import { Drone } from "../models/drones";
 import { addDroneAPI, editDroneAPI, getDronesAPI } from "../services/services";
-const initialDrones: Drone[] = [
-  //   {
-  //     id: "DRN-001",
-  //     name: "EcoDrone Alpha",
-  //     model: "ED-X1",
-  //     status: "Active",
-  //     battery: 85,
-  //     location: "North Campus",
-  //     lastFlight: "5 min ago",
-  //     totalFlights: 342,
-  //     maxPayload: "2.5kg",
-  //   },
-  //   {
-  //     id: "DRN-002",
-  //     name: "EcoDrone Beta",
-  //     model: "ED-X1",
-  //     status: "Charging",
-  //     battery: 45,
-  //     location: "Charging Station 1",
-  //     lastFlight: "15 min ago",
-  //     totalFlights: 298,
-  //     maxPayload: "2.5kg",
-  //   },
-  //   {
-  //     id: "DRN-003",
-  //     name: "EcoDrone Gamma",
-  //     model: "ED-X2",
-  //     status: "Active",
-  //     battery: 92,
-  //     location: "South Campus",
-  //     lastFlight: "2 min ago",
-  //     totalFlights: 421,
-  //     maxPayload: "3.0kg",
-  //   },
-  //   {
-  //     id: "DRN-004",
-  //     name: "EcoDrone Delta",
-  //     model: "ED-X1",
-  //     status: "Idle",
-  //     battery: 100,
-  //     location: "Main Hub",
-  //     lastFlight: "45 min ago",
-  //     totalFlights: 267,
-  //     maxPayload: "2.5kg",
-  //   },
-  //   {
-  //     id: "DRN-005",
-  //     name: "EcoDrone Epsilon",
-  //     model: "ED-X2",
-  //     status: "Maintenance",
-  //     battery: 0,
-  //     location: "Maintenance Bay",
-  //     lastFlight: "2 hours ago",
-  //     totalFlights: 389,
-  //     maxPayload: "3.0kg",
-  //   },
-  //   {
-  //     id: "DRN-006",
-  //     name: "EcoDrone Zeta",
-  //     model: "ED-X1",
-  //     status: "Active",
-  //     battery: 67,
-  //     location: "East Campus",
-  //     lastFlight: "8 min ago",
-  //     totalFlights: 312,
-  //     maxPayload: "2.5kg",
-  //   },
-];
+
 export function DronesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
@@ -92,14 +25,13 @@ export function DronesPage() {
   const [maxPayload, setMaxPayload] = useState("");
   const [editingDrone, setEditingDrone] = useState<Drone | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Drone>>({});
-
-  const [drones, setDrones] = useState<Drone[]>(initialDrones);
+  const [drones, setDrones] = useState<Drone[]>([]);
 
   useEffect(() => {
     const fetchDrones = async () => {
       try {
         const data = await getDronesAPI();
-        setDrones(data);
+        setDrones(data.drones);
       } catch (error) {
         console.error("Error fetching drones:", error);
       }

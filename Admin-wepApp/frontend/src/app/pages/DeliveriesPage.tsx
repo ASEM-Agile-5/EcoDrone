@@ -21,137 +21,6 @@ import React from "react";
 import { getOrdersAPI } from "../services/services";
 import { Order } from "../models/order";
 
-const initialDeliveries: Order[] = [
-  // {
-  //   order_id: "ORD-2341",
-  //   vendor: "Campus Café",
-  //   location: "Dorm Building A",
-  //   status: "In Transit",
-  //   drone: "DRONE-05",
-  //   timestamp: "2026-02-12 10:45",
-  //   customerName: "John Doe",
-  //   customerPhone: "123-456-7890",
-  //   items: [
-  //     { name: "Coffee", quantity: 2, price: 2.5 },
-  //     { name: "Bagel", quantity: 1, price: 3.0 },
-  //   ],
-  //   totalAmount: 8.0,
-  //   deliveryFee: 2.0,
-  // },
-  // {
-  //   order_id: "ORD-2340",
-  //   vendor: "Bistro",
-  //   location: "Engineering Block",
-  //   status: "Delivered",
-  //   drone: "DRONE-03",
-  //   timestamp: "2026-02-12 10:30",
-  //   customerName: "Jane Smith",
-  //   customerPhone: "987-654-3210",
-  //   items: [
-  //     { name: "Salad", quantity: 1, price: 5.0 },
-  //     { name: "Sandwich", quantity: 2, price: 4.5 },
-  //   ],
-  //   totalAmount: 14.0,
-  //   deliveryFee: 2.0,
-  // },
-  // {
-  //   order_id: "ORD-2339",
-  //   vendor: "Smoothie Bar",
-  //   location: "Library",
-  //   status: "Preparing",
-  //   drone: "DRONE-08",
-  //   timestamp: "2026-02-12 10:25",
-  //   customerName: "Alice Johnson",
-  //   customerPhone: "555-123-4567",
-  //   items: [
-  //     { name: "Smoothie", quantity: 1, price: 4.0 },
-  //     { name: "Fruit Bowl", quantity: 1, price: 3.5 },
-  //   ],
-  //   totalAmount: 7.5,
-  //   deliveryFee: 2.0,
-  // },
-  // {
-  //   order_id: "ORD-2338",
-  //   vendor: "Campus Café",
-  //   location: "Sports Complex",
-  //   status: "Delivered",
-  //   drone: "DRONE-02",
-  //   timestamp: "2026-02-12 10:15",
-  //   customerName: "Bob Brown",
-  //   customerPhone: "111-222-3333",
-  //   items: [
-  //     { name: "Burger", quantity: 1, price: 6.0 },
-  //     { name: "Fries", quantity: 1, price: 2.0 },
-  //   ],
-  //   totalAmount: 8.0,
-  //   deliveryFee: 2.0,
-  // },
-  // {
-  //   order_id: "ORD-2337",
-  //   vendor: "Bistro",
-  //   location: "Admin Building",
-  //   status: "In Transit",
-  //   drone: "DRONE-07",
-  //   timestamp: "2026-02-12 10:10",
-  //   customerName: "Charlie Davis",
-  //   customerPhone: "444-555-6666",
-  //   items: [
-  //     { name: "Pasta", quantity: 1, price: 7.0 },
-  //     { name: "Bread", quantity: 1, price: 1.5 },
-  //   ],
-  //   totalAmount: 8.5,
-  //   deliveryFee: 2.0,
-  // },
-  // {
-  //   order_id: "ORD-2336",
-  //   vendor: "Smoothie Bar",
-  //   location: "Dorm Building B",
-  //   status: "Delivered",
-  //   drone: "DRONE-01",
-  //   timestamp: "2026-02-12 10:05",
-  //   customerName: "Diana Evans",
-  //   customerPhone: "777-888-9999",
-  //   items: [
-  //     { name: "Smoothie", quantity: 1, price: 4.0 },
-  //     { name: "Fruit Bowl", quantity: 1, price: 3.5 },
-  //   ],
-  //   totalAmount: 7.5,
-  //   deliveryFee: 2.0,
-  // },
-  // {
-  //   order_id: "ORD-2335",
-  //   vendor: "Campus Café",
-  //   location: "Student Center",
-  //   status: "Preparing",
-  //   drone: "DRONE-06",
-  //   timestamp: "2026-02-12 10:00",
-  //   customerName: "Ethan Foster",
-  //   customerPhone: "333-444-5555",
-  //   items: [
-  //     { name: "Coffee", quantity: 2, price: 2.5 },
-  //     { name: "Bagel", quantity: 1, price: 3.0 },
-  //   ],
-  //   totalAmount: 8.0,
-  //   deliveryFee: 2.0,
-  // },
-  // {
-  //   order_id: "ORD-2334",
-  //   vendor: "Bistro",
-  //   location: "Faculty Offices",
-  //   status: "Delivered",
-  //   drone: "DRONE-04",
-  //   timestamp: "2026-02-12 09:55",
-  //   customerName: "Fiona Garcia",
-  //   customerPhone: "666-777-8888",
-  //   items: [
-  //     { name: "Salad", quantity: 1, price: 5.0 },
-  //     { name: "Sandwich", quantity: 2, price: 4.5 },
-  //   ],
-  //   totalAmount: 14.0,
-  //   deliveryFee: 2.0,
-  // },
-];
-
 const availableDrones = [
   "DRONE-01",
   "DRONE-02",
@@ -168,7 +37,7 @@ const availableDrones = [
 ];
 
 export function DeliveriesPage() {
-  const [deliveries, setDeliveries] = useState<Order[]>(initialDeliveries);
+  const [deliveries, setDeliveries] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);

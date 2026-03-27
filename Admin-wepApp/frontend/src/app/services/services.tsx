@@ -1,10 +1,9 @@
+"use client";
 import axios from "axios";
-import { LoginResponse, User } from "../models/users";
 import { MenuItem, Vendor } from "../models/vendors";
-// import { NextResponse } from "next/server";
 
 const api = axios.create({
-  baseURL: "/api",
+  baseURL: "https://ecodrone-backend-dev-lwunguolhq-uc.a.run.app/",
   withCredentials: true,
 });
 
@@ -79,7 +78,7 @@ export const getDronesAPI = async () => {
   // }
   try {
     const response = await api.get("drones/list");
-    // console.log(response.data)
+    // console.log(response.data);
     return response.data;
   } catch (error) {
     console.log(error);

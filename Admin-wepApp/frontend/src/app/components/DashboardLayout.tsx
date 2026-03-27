@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from "react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useUser } from "../context/UserContext";
 import {
   LayoutDashboard,
   Package,
@@ -20,7 +21,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { useUser } from "../context/UserContext";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -40,9 +40,14 @@ export function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user } = useUser();
+  const { user, loading, refetchUser, setLoading } = useUser();
 
-  // console.log(user);
+  useEffect(() => {
+    refetchUser();
+    if (!loading && !user) {
+      navigate("/");
+    }
+  }, []);
 
   return (
     <div
@@ -135,13 +140,15 @@ export function DashboardLayout() {
             <DropdownMenuTrigger className="flex items-center gap-3 hover:bg-gray-50 px-4 py-2 rounded-lg transition-colors">
               <div className="w-8 h-8 rounded-full bg-[#8A1538] flex items-center justify-center">
                 <span className="text-white text-sm">
-                  {}
-                  {}
+                  {user?.first_name[0]}
+                  {user?.last_name[0]}
                 </span>
               </div>
               <div className="text-left">
-                <div className="text-sm">Admin User</div>
-                <div className="text-xs text-gray-500">{}</div>
+                <div className="text-sm">
+                  {user?.first_name} {user?.last_name}
+                </div>
+                <div className="text-xs text-gray-500">{user?.email}</div>
               </div>
               <ChevronDown className="w-4 h-4 text-gray-400" />
             </DropdownMenuTrigger>
