@@ -50,16 +50,16 @@ class DroneListView(APIView):
             user_id = payload['user_id']
             user = User.objects.get(id=user_id)
             if not user.is_superuser:
-                vendors = Drone.objects.filter(status='Active')
-                serializer =DroneSerializer (vendors, many=True)
+                drones = Drone.objects.filter(status='Active')
+                serializer =DroneSerializer (drones, many=True)
                 return Response({
-                    "vendors": serializer.data
+                    "drones": serializer.data
                 }, status=status.HTTP_200_OK)
             else:
                 drones = Drone.objects.all()
                 serializer = DroneSerializer(drones, many=True)
                 return Response({
-                    "vendors": serializer.data
+                    "drones": serializer.data
                 }, status=status.HTTP_200_OK)
             
         except jwt.ExpiredSignatureError:

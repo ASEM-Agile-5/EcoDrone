@@ -4,13 +4,13 @@ from .models import Vendor, Category, Menu
 class VendorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vendor
-        fields = ['id', 'vendor_id', 'name', 'registered_by', 'registration_time', 'menu_count', 'terms_agreed_at','owned_by', 'vendor_contact', 'owner_contact', 'volume_processed', 'value_processed', 'status']
+        fields = ['id', 'vendor_id', 'name', 'registered_by', 'registration_time', 'menu_count', 'terms_agreed_at','owned_by', 'vendor_contact', 'owner_contact', 'volume_processed', 'value_processed', 'status', 'image_url', 'eta', 'rating']
         read_only_fields = ['id', 'vendor_id', 'registration_time', 'registered_by', 'menu_count', 'volume_processed', 'value_processed']
 
 class RegisterVendorSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vendor
-        fields = ['name', 'owned_by', 'vendor_contact', 'owner_contact', "terms_agreed_at", "status"]
+        fields = ['name', 'owned_by', 'vendor_contact', 'owner_contact', "terms_agreed_at", "status", "image_url"]
         
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:

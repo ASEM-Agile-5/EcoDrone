@@ -22,9 +22,10 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.postgres',
     'django.contrib.staticfiles',
-    'users',
     'drf_yasg',
+    'users',
     'corsheaders',
     'rest_framework',
     'order_placement',
@@ -73,6 +74,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ecodrone_django.wsgi.application'
 
 
+
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
@@ -100,6 +102,9 @@ else:
             'PORT': os.getenv('DB_PORT', '8054'),
         }
     }
+
+# Password validation
+# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

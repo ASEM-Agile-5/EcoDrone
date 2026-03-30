@@ -6,7 +6,7 @@ from .models import Order
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
-        fields = ['order_id', 'user', 'timestamp', 'vendor', 'location', 'total_amount', 'status', 'assigned_drone']
+        fields = ['order_id', 'user', 'timestamp', 'vendor', 'location', 'total_amount', 'status', 'assigned_drone', 'image_url']
         read_only_fields = ['order_id', 'status']
         
 class UserOrderSerializer(serializers.ModelSerializer):

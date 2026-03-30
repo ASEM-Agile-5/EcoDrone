@@ -5,13 +5,23 @@ import jwt
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from .models import Vendor, Category, Menu
-from .serializers import CategorySerializer, MenuSerializer, VendorSerializer, VendorStatusSerializer, MenuUpdateSerializer, MenuDeleteSerializer
+from .serializers import CategorySerializer, MenuSerializer, VendorSerializer, VendorStatusSerializer, MenuUpdateSerializer, MenuDeleteSerializer, RegisterVendorSerializer
 from order_placement.models import Order
 from order_placement.serializers import OrderSerializer
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
 
 
 
 class RegisterVendorView(APIView):
+    @swagger_auto_schema(
+        request_body=RegisterVendorSerializer,
+        responses={
+            201: VendorSerializer,
+            400: openapi.Response('Bad request'),
+            401: openapi.Response('Unauthorized'),
+        }
+    )
     def post(self, request):
         User = get_user_model() 
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
@@ -41,6 +51,13 @@ class RegisterVendorView(APIView):
 
 
 class VendorListView(APIView):
+    @swagger_auto_schema(
+        responses={
+            200: VendorSerializer,
+            400: openapi.Response('Bad request'),
+            401: openapi.Response('Unauthorized'),
+        }
+    )
     def get(self, request):
         User = get_user_model() 
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
@@ -122,10 +139,18 @@ class CreateCategoryView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 class MenuDetailView(APIView):
+    @swagger_auto_schema(
+        responses={
+            200: MenuSerializer,
+            400: openapi.Response('Bad request'),
+            401: openapi.Response('Unauthorized'),
+        }
+    )
 
     def get(self, request, vendor_id):
         User = get_user_model() 
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
+        print(token)
 
         if not token: 
             return Response({"error": "Token not found"}, status=status.HTTP_401_UNAUTHORIZED)
