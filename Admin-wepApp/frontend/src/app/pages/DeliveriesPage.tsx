@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, Filter, Download, Edit, Eye, X } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
@@ -18,153 +18,8 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import React from "react";
-
-type Delivery = {
-  id: string;
-  vendor: string;
-  location: string;
-  status: string;
-  drone: string;
-  timestamp: string;
-  customerName: string;
-  customerPhone: string;
-  items: { name: string; quantity: number; price: number }[];
-  totalAmount: number;
-  deliveryFee: number;
-  specialInstructions?: string;
-};
-
-const initialDeliveries: Delivery[] = [
-  {
-    id: "ORD-2341",
-    vendor: "Campus Café",
-    location: "Dorm Building A",
-    status: "In Transit",
-    drone: "DRONE-05",
-    timestamp: "2026-02-12 10:45",
-    customerName: "John Doe",
-    customerPhone: "123-456-7890",
-    items: [
-      { name: "Coffee", quantity: 2, price: 2.5 },
-      { name: "Bagel", quantity: 1, price: 3.0 },
-    ],
-    totalAmount: 8.0,
-    deliveryFee: 2.0,
-    specialInstructions: "Leave at the front desk.",
-  },
-  {
-    id: "ORD-2340",
-    vendor: "Bistro",
-    location: "Engineering Block",
-    status: "Delivered",
-    drone: "DRONE-03",
-    timestamp: "2026-02-12 10:30",
-    customerName: "Jane Smith",
-    customerPhone: "987-654-3210",
-    items: [
-      { name: "Salad", quantity: 1, price: 5.0 },
-      { name: "Sandwich", quantity: 2, price: 4.5 },
-    ],
-    totalAmount: 14.0,
-    deliveryFee: 2.0,
-  },
-  {
-    id: "ORD-2339",
-    vendor: "Smoothie Bar",
-    location: "Library",
-    status: "Preparing",
-    drone: "DRONE-08",
-    timestamp: "2026-02-12 10:25",
-    customerName: "Alice Johnson",
-    customerPhone: "555-123-4567",
-    items: [
-      { name: "Smoothie", quantity: 1, price: 4.0 },
-      { name: "Fruit Bowl", quantity: 1, price: 3.5 },
-    ],
-    totalAmount: 7.5,
-    deliveryFee: 2.0,
-  },
-  {
-    id: "ORD-2338",
-    vendor: "Campus Café",
-    location: "Sports Complex",
-    status: "Delivered",
-    drone: "DRONE-02",
-    timestamp: "2026-02-12 10:15",
-    customerName: "Bob Brown",
-    customerPhone: "111-222-3333",
-    items: [
-      { name: "Burger", quantity: 1, price: 6.0 },
-      { name: "Fries", quantity: 1, price: 2.0 },
-    ],
-    totalAmount: 8.0,
-    deliveryFee: 2.0,
-  },
-  {
-    id: "ORD-2337",
-    vendor: "Bistro",
-    location: "Admin Building",
-    status: "In Transit",
-    drone: "DRONE-07",
-    timestamp: "2026-02-12 10:10",
-    customerName: "Charlie Davis",
-    customerPhone: "444-555-6666",
-    items: [
-      { name: "Pasta", quantity: 1, price: 7.0 },
-      { name: "Bread", quantity: 1, price: 1.5 },
-    ],
-    totalAmount: 8.5,
-    deliveryFee: 2.0,
-  },
-  {
-    id: "ORD-2336",
-    vendor: "Smoothie Bar",
-    location: "Dorm Building B",
-    status: "Delivered",
-    drone: "DRONE-01",
-    timestamp: "2026-02-12 10:05",
-    customerName: "Diana Evans",
-    customerPhone: "777-888-9999",
-    items: [
-      { name: "Smoothie", quantity: 1, price: 4.0 },
-      { name: "Fruit Bowl", quantity: 1, price: 3.5 },
-    ],
-    totalAmount: 7.5,
-    deliveryFee: 2.0,
-  },
-  {
-    id: "ORD-2335",
-    vendor: "Campus Café",
-    location: "Student Center",
-    status: "Preparing",
-    drone: "DRONE-06",
-    timestamp: "2026-02-12 10:00",
-    customerName: "Ethan Foster",
-    customerPhone: "333-444-5555",
-    items: [
-      { name: "Coffee", quantity: 2, price: 2.5 },
-      { name: "Bagel", quantity: 1, price: 3.0 },
-    ],
-    totalAmount: 8.0,
-    deliveryFee: 2.0,
-  },
-  {
-    id: "ORD-2334",
-    vendor: "Bistro",
-    location: "Faculty Offices",
-    status: "Delivered",
-    drone: "DRONE-04",
-    timestamp: "2026-02-12 09:55",
-    customerName: "Fiona Garcia",
-    customerPhone: "666-777-8888",
-    items: [
-      { name: "Salad", quantity: 1, price: 5.0 },
-      { name: "Sandwich", quantity: 2, price: 4.5 },
-    ],
-    totalAmount: 14.0,
-    deliveryFee: 2.0,
-  },
-];
+import { getOrdersAPI } from "../services/services";
+import { Order } from "../models/order";
 
 const availableDrones = [
   "DRONE-01",
@@ -182,18 +37,37 @@ const availableDrones = [
 ];
 
 export function DeliveriesPage() {
-  const [deliveries, setDeliveries] = useState<Delivery[]>(initialDeliveries);
+  const [deliveries, setDeliveries] = useState<Order[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [editingOrder, setEditingOrder] = useState<Delivery | null>(null);
-  const [viewingOrder, setViewingOrder] = useState<Delivery | null>(null);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [viewingOrder, setViewingOrder] = useState<Order | null>(null);
   const [editStatus, setEditStatus] = useState("");
   const [editDrone, setEditDrone] = useState("");
+  const [projectsLoading, setProjectsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setProjectsLoading(true);
+        const data = await getOrdersAPI();
+        setDeliveries(data || []);
+      } catch (error) {
+        console.error("Failed to fetch projects:", error);
+        setDeliveries([]);
+      } finally {
+        setProjectsLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, []);
 
   const filteredDeliveries = deliveries.filter((delivery) => {
-    const matchesStatus = statusFilter === "all" || delivery.status.toLowerCase() === statusFilter;
+    const matchesStatus =
+      statusFilter === "all" || delivery.status.toLowerCase() === statusFilter;
     const matchesSearch =
-      delivery.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      delivery.order_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       delivery.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
       delivery.location.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
@@ -207,17 +81,17 @@ export function DeliveriesPage() {
         return "bg-amber-100 text-amber-700";
       case "In Transit":
         return "bg-blue-100 text-blue-700";
-      case "Delivered":
+      case "Completed":
         return "bg-green-100 text-green-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
   };
 
-  const handleEdit = (delivery: Delivery) => {
+  const handleEdit = (delivery: Order) => {
     setEditingOrder(delivery);
     setEditStatus(delivery.status);
-    setEditDrone(delivery.drone);
+    // setEditDrone(delivery.drone);
   };
 
   const handleSave = () => {
@@ -226,9 +100,9 @@ export function DeliveriesPage() {
       const updatedDrone = editStatus === "Waiting" ? "None" : editDrone;
 
       const updatedDeliveries = deliveries.map((delivery) =>
-        delivery.id === editingOrder.id
+        delivery.order_id === editingOrder.order_id
           ? { ...delivery, status: editStatus, drone: updatedDrone }
-          : delivery
+          : delivery,
       );
       setDeliveries(updatedDeliveries);
       setEditingOrder(null);
@@ -239,7 +113,7 @@ export function DeliveriesPage() {
     setEditingOrder(null);
   };
 
-  const handleView = (delivery: Delivery) => {
+  const handleView = (delivery: Order) => {
     setViewingOrder(delivery);
   };
 
@@ -252,7 +126,9 @@ export function DeliveriesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl mb-2" style={{ color: '#8A1538' }}>Delivery Management</h1>
+          <h1 className="text-3xl mb-2" style={{ color: "#8A1538" }}>
+            Delivery Management
+          </h1>
           <p className="text-gray-600">Track and manage all drone deliveries</p>
         </div>
         <Button className="bg-[#8A1538] hover:bg-[#6d1029] text-white">
@@ -283,7 +159,7 @@ export function DeliveriesPage() {
               <SelectItem value="waiting">Waiting</SelectItem>
               <SelectItem value="preparing">Preparing</SelectItem>
               <SelectItem value="in transit">In Transit</SelectItem>
-              <SelectItem value="delivered">Delivered</SelectItem>
+              <SelectItem value="Completed">Completed</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -298,7 +174,7 @@ export function DeliveriesPage() {
         <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
           <div className="text-sm text-amber-700">Preparing</div>
           <div className="text-2xl mt-1 text-amber-700">
-            {deliveries.filter((d) => d.status === "Preparing").length}
+            {deliveries.filter((d) => d.status === "In Progress").length}
           </div>
         </div>
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
@@ -308,9 +184,9 @@ export function DeliveriesPage() {
           </div>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-          <div className="text-sm text-green-700">Delivered</div>
+          <div className="text-sm text-green-700">Completed</div>
           <div className="text-2xl mt-1 text-green-700">
-            {deliveries.filter((d) => d.status === "Delivered").length}
+            {deliveries.filter((d) => d.status === "Completed").length}
           </div>
         </div>
       </div>
@@ -331,12 +207,15 @@ export function DeliveriesPage() {
           </TableHeader>
           <TableBody>
             {filteredDeliveries.map((delivery) => (
-              <TableRow key={delivery.id} className="hover:bg-gray-50">
-                <TableCell className="font-mono text-sm">{delivery.id}</TableCell>
+              <TableRow key={delivery.order_id} className="hover:bg-gray-50">
+                <TableCell className="font-mono text-sm">
+                  {delivery.order_id}
+                </TableCell>
                 <TableCell>{delivery.vendor}</TableCell>
                 <TableCell>{delivery.location}</TableCell>
                 <TableCell>
-                  {editingOrder && editingOrder.id === delivery.id ? (
+                  {editingOrder &&
+                  editingOrder.order_id === delivery.order_id ? (
                     <Select value={editStatus} onValueChange={setEditStatus}>
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="Select status" />
@@ -344,18 +223,22 @@ export function DeliveriesPage() {
                       <SelectContent>
                         <SelectItem value="Waiting">Waiting</SelectItem>
                         <SelectItem value="Preparing">Preparing</SelectItem>
-                        <SelectItem value="In Transit">In Transit</SelectItem>
-                        <SelectItem value="Delivered">Delivered</SelectItem>
+                        <SelectItem value="In Progress">In Progress</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
-                    <span className={`px-3 py-1 rounded-full text-xs ${getStatusColor(delivery.status)}`}>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs ${getStatusColor(delivery.status)}`}
+                    >
                       {delivery.status}
                     </span>
                   )}
                 </TableCell>
                 <TableCell className="font-mono text-sm">
-                  {editingOrder && editingOrder.id === delivery.id && delivery.status !== "Delivered" ? (
+                  {editingOrder &&
+                  editingOrder.order_id === delivery.order_id &&
+                  delivery.status !== "Completed" ? (
                     <Select value={editDrone} onValueChange={setEditDrone}>
                       <SelectTrigger className="w-32">
                         <SelectValue placeholder="Select drone" />
@@ -372,9 +255,12 @@ export function DeliveriesPage() {
                     delivery.drone
                   )}
                 </TableCell>
-                <TableCell className="text-sm text-gray-600">{delivery.timestamp}</TableCell>
+                <TableCell className="text-sm text-gray-600">
+                  {delivery.timestamp}
+                </TableCell>
                 <TableCell>
-                  {editingOrder && editingOrder.id === delivery.id ? (
+                  {editingOrder &&
+                  editingOrder.order_id === delivery.order_id ? (
                     <div className="flex gap-2">
                       <Button
                         className="bg-green-500 hover:bg-green-600 text-white"
@@ -419,7 +305,9 @@ export function DeliveriesPage() {
         <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl shadow-xl border border-gray-200 w-[500px] max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl" style={{ color: '#8A1538' }}>Order Details</h2>
+              <h2 className="text-2xl" style={{ color: "#8A1538" }}>
+                Order Details
+              </h2>
               <Button
                 className="bg-gray-500 hover:bg-gray-600 text-white p-2"
                 onClick={handleCloseView}
@@ -432,41 +320,88 @@ export function DeliveriesPage() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-gray-500">Order ID</p>
-                  <p className="text-sm font-mono">{viewingOrder.id}</p>
+                  <p className="text-sm font-mono">{viewingOrder.order_id}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-500">Status</p>
-                  <span className={`inline-block px-3 py-1 rounded-full text-xs ${getStatusColor(viewingOrder.status)}`}>
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-xs ${getStatusColor(viewingOrder.status)}`}
+                  >
                     {viewingOrder.status}
                   </span>
                 </div>
               </div>
 
               <div className="border-t pt-3">
-                <h3 className="text-sm font-semibold mb-2" style={{ color: '#8A1538' }}>Vendor Information</h3>
-                <p className="text-sm"><span className="text-gray-500">Vendor:</span> {viewingOrder.vendor}</p>
-                <p className="text-sm"><span className="text-gray-500">Delivery Location:</span> {viewingOrder.location}</p>
+                <h3
+                  className="text-sm font-semibold mb-2"
+                  style={{ color: "#8A1538" }}
+                >
+                  Vendor Information
+                </h3>
+                <p className="text-sm">
+                  <span className="text-gray-500">Vendor:</span>{" "}
+                  {viewingOrder.vendor}
+                </p>
+                <p className="text-sm">
+                  <span className="text-gray-500">Delivery Location:</span>{" "}
+                  {viewingOrder.location}
+                </p>
               </div>
 
               <div className="border-t pt-3">
-                <h3 className="text-sm font-semibold mb-2" style={{ color: '#8A1538' }}>Customer Information</h3>
-                <p className="text-sm"><span className="text-gray-500">Name:</span> {viewingOrder.customerName}</p>
-                <p className="text-sm"><span className="text-gray-500">Phone:</span> {viewingOrder.customerPhone}</p>
+                <h3
+                  className="text-sm font-semibold mb-2"
+                  style={{ color: "#8A1538" }}
+                >
+                  Customer Information
+                </h3>
+                <p className="text-sm">
+                  <span className="text-gray-500">Name:</span>{" "}
+                  {viewingOrder.customerName}
+                </p>
+                <p className="text-sm">
+                  <span className="text-gray-500">Phone:</span>{" "}
+                  {viewingOrder.customerPhone}
+                </p>
               </div>
 
               <div className="border-t pt-3">
-                <h3 className="text-sm font-semibold mb-2" style={{ color: '#8A1538' }}>Delivery Information</h3>
-                <p className="text-sm"><span className="text-gray-500">Assigned Drone:</span> {viewingOrder.drone}</p>
-                <p className="text-sm"><span className="text-gray-500">Timestamp:</span> {viewingOrder.timestamp}</p>
+                <h3
+                  className="text-sm font-semibold mb-2"
+                  style={{ color: "#8A1538" }}
+                >
+                  Delivery Information
+                </h3>
+                <p className="text-sm">
+                  <span className="text-gray-500">Assigned Drone:</span>{" "}
+                  {viewingOrder.drone}
+                </p>
+                <p className="text-sm">
+                  <span className="text-gray-500">Timestamp:</span>{" "}
+                  {viewingOrder.timestamp}
+                </p>
               </div>
 
               <div className="border-t pt-3">
-                <h3 className="text-sm font-semibold mb-2" style={{ color: '#8A1538' }}>Order Items</h3>
+                <h3
+                  className="text-sm font-semibold mb-2"
+                  style={{ color: "#8A1538" }}
+                >
+                  Order Items
+                </h3>
                 <div className="bg-gray-50 rounded-lg p-3 space-y-2">
                   {viewingOrder.items.map((item, index) => (
-                    <div key={index} className="flex justify-between items-center">
-                      <span className="text-sm">{item.name} x{item.quantity}</span>
-                      <span className="text-sm font-mono">₵{(item.price * item.quantity).toFixed(2)}</span>
+                    <div
+                      key={index}
+                      className="flex justify-between items-center"
+                    >
+                      <span className="text-sm">
+                        {item.name} x{item.quantity}
+                      </span>
+                      <span className="text-sm font-mono">
+                        ₵{(item.price * item.quantity).toFixed(2)}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -476,23 +411,39 @@ export function DeliveriesPage() {
                 <div className="space-y-1">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Subtotal:</span>
-                    <span className="text-sm font-mono">₵{viewingOrder.totalAmount.toFixed(2)}</span>
+                    <span className="text-sm font-mono">
+                      ₵{viewingOrder.totalAmount.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-600">Delivery Fee:</span>
-                    <span className="text-sm font-mono">₵{viewingOrder.deliveryFee.toFixed(2)}</span>
+                    <span className="text-sm font-mono">
+                      ₵{viewingOrder.deliveryFee.toFixed(2)}
+                    </span>
                   </div>
                   <div className="flex justify-between border-t pt-1">
                     <span className="text-sm font-semibold">Total:</span>
-                    <span className="text-sm font-mono font-semibold">₵{(viewingOrder.totalAmount + viewingOrder.deliveryFee).toFixed(2)}</span>
+                    <span className="text-sm font-mono font-semibold">
+                      ₵
+                      {(
+                        viewingOrder.totalAmount + viewingOrder.deliveryFee
+                      ).toFixed(2)}
+                    </span>
                   </div>
                 </div>
               </div>
 
               {viewingOrder.specialInstructions && (
                 <div className="border-t pt-3">
-                  <h3 className="text-sm font-semibold mb-2" style={{ color: '#8A1538' }}>Special Instructions</h3>
-                  <p className="text-sm bg-amber-50 p-3 rounded-lg border border-amber-200">{viewingOrder.specialInstructions}</p>
+                  <h3
+                    className="text-sm font-semibold mb-2"
+                    style={{ color: "#8A1538" }}
+                  >
+                    Special Instructions
+                  </h3>
+                  <p className="text-sm bg-amber-50 p-3 rounded-lg border border-amber-200">
+                    {viewingOrder.specialInstructions}
+                  </p>
                 </div>
               )}
             </div>
