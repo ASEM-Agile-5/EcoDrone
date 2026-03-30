@@ -20,4 +20,4 @@ USER djangouser
 
 EXPOSE 8080
 
-CMD python manage.py migrate --noinput && exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 ecodrone_django.wsgi:application
+CMD python manage.py migrate --noinput; exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 ecodrone_django.wsgi:application
