@@ -8,8 +8,6 @@ from .models import Vendor, Order
 from .serializers import OrderSerializer, OrderStatusSerializer, OrderRequestSerializer, UserOrderSerializer
 from django.contrib.auth import get_user_model
 from . import order_status
-from drf_spectacular.utils import extend_schema, OpenApiResponse
-
 # import requests
 import uuid
 
@@ -69,13 +67,7 @@ class OrderView(APIView):
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 
 class OrderByUserView(APIView):
-    @extend_schema(
-        responses={
-            201: UserOrderSerializer,
-            400: OpenApiResponse(description='Bad request'),
-            401: OpenApiResponse(description='Unauthorized'),
-        }
-    )
+
     def get(self, request):
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
 
@@ -153,14 +145,6 @@ class PlaceOrderView(APIView):
     #         print(f"Request failed: {e}")
     #         return None
 
-    @extend_schema(
-        request=OrderRequestSerializer,
-        responses={
-            201: OrderSerializer,
-            400: OpenApiResponse(description='Bad request'),
-            401: OpenApiResponse(description='Unauthorized'),
-        }
-    )
     def post(self, request):
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
 
