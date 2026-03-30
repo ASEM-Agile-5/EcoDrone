@@ -36,7 +36,7 @@ INSTALLED_APPS = [
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRY_MINUTES = 150
 DEBUG = os.getenv("DEBUG", "False") == "True"
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv('SECRET_KEY','django-insecure-98t#7q!-0vm=1&j-bw=zounhdlgtx*-anvuox6r#j^grp0=b^(')
 # CORS_ALLOWED_ORIGINS = [
 #     "http://localhost:8000",
 #     "http://127.0.0.1:8000",
@@ -93,10 +93,11 @@ if os.getenv('GAE_APPLICATION'):
 else:
     # Running locally - use your local PostgreSQL
     DATABASES = {
+        
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'ecodrone_local'),
-            'USER': os.getenv('DB_USER', 'postgres'),
+            'NAME': os.getenv('DB_NAME', 'postgres'),
+            'USER': os.getenv('DB_USER', 'patrickadu-amankwah'),
             'PASSWORD': os.getenv('DB_PASSWORD', ''),
             'HOST': os.getenv('DB_HOST', 'localhost'),
             'PORT': os.getenv('DB_PORT', '8054'),

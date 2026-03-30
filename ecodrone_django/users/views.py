@@ -27,10 +27,12 @@ class RegisterView(views.APIView):
 
 class LoginView(views.APIView):
     def post(self, request):
-        serializer = LoginSerializer(data=request.data)
+        try:
+            
+            serializer = LoginSerializer(data=request.data)
         
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
+            if serializer.is_valid():
+                user = serializer.validated_data['user']
 
             # 1. Use timezone-aware datetimes (utcnow is deprecated)
             now = datetime.datetime.now(datetime.timezone.utc)
@@ -62,8 +64,8 @@ class LoginView(views.APIView):
             )
 
             return response
-            
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
     
 
 class UserViewToo(views.APIView):  
