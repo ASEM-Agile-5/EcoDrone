@@ -24,7 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.postgres',
     'django.contrib.staticfiles',
-    'drf_yasg',
+    'drf_spectacular',
     'users',
     'corsheaders',
     'rest_framework',
