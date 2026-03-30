@@ -8,8 +8,7 @@ from .models import Vendor, Order
 from .serializers import OrderSerializer, OrderStatusSerializer, OrderRequestSerializer, UserOrderSerializer
 from django.contrib.auth import get_user_model
 from . import order_status
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 # import requests
 import uuid
@@ -70,11 +69,11 @@ class OrderView(APIView):
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 
 class OrderByUserView(APIView):
-    @swagger_auto_schema(
+    @extend_schema(
         responses={
             201: UserOrderSerializer,
-            400: openapi.Response('Bad request'),
-            401: openapi.Response('Unauthorized'),
+            400: OpenApiResponse(description='Bad request'),
+            401: OpenApiResponse(description='Unauthorized'),
         }
     )
     def get(self, request):
@@ -82,7 +81,7 @@ class OrderByUserView(APIView):
 
         if not token:
             return Response({"error": "Token not found"}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
         try:
             # Verify token
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
@@ -154,12 +153,12 @@ class PlaceOrderView(APIView):
     #         print(f"Request failed: {e}")
     #         return None
 
-    @swagger_auto_schema(
-        request_body=OrderRequestSerializer,
+    @extend_schema(
+        request=OrderRequestSerializer,
         responses={
             201: OrderSerializer,
-            400: openapi.Response('Bad request'),
-            401: openapi.Response('Unauthorized'),
+            400: OpenApiResponse(description='Bad request'),
+            401: OpenApiResponse(description='Unauthorized'),
         }
     )
     def post(self, request):
