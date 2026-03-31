@@ -63,7 +63,7 @@ export function DeliveriesPage() {
 
   const filteredDeliveries = deliveries.filter((delivery) => {
     const matchesStatus =
-      statusFilter === "all" || delivery.status.toLowerCase() === statusFilter;
+      statusFilter === "all" || delivery.status === statusFilter;
     const matchesSearch =
       delivery.order_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       delivery.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -73,14 +73,14 @@ export function DeliveriesPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Waiting":
+      case "Pending":
         return "bg-purple-100 text-purple-700";
-      case "Preparing":
+      case "In Progress":
         return "bg-amber-100 text-amber-700";
-      case "In Transit":
-        return "bg-blue-100 text-blue-700";
       case "Completed":
         return "bg-green-100 text-green-700";
+      case "Failed":
+        return "bg-red-100 text-red-700";
       default:
         return "bg-gray-100 text-gray-700";
     }
@@ -154,10 +154,10 @@ export function DeliveriesPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="waiting">Waiting</SelectItem>
-              <SelectItem value="preparing">Preparing</SelectItem>
-              <SelectItem value="in transit">In Transit</SelectItem>
+              <SelectItem value="Pending">Pending</SelectItem>
+              <SelectItem value="In Progress">In Progress</SelectItem>
               <SelectItem value="Completed">Completed</SelectItem>
+              <SelectItem value="Failed">Failed</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -169,16 +169,16 @@ export function DeliveriesPage() {
           <div className="text-sm text-gray-600">Total Today</div>
           <div className="text-2xl mt-1">{deliveries.length}</div>
         </div>
-        <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-          <div className="text-sm text-amber-700">Preparing</div>
-          <div className="text-2xl mt-1 text-amber-700">
-            {deliveries.filter((d) => d.status === "In Progress").length}
+        <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+          <div className="text-sm text-purple-700">Pending</div>
+          <div className="text-2xl mt-1 text-purple-700">
+            {deliveries.filter((d) => d.status === "Pending").length}
           </div>
         </div>
-        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-          <div className="text-sm text-blue-700">In Transit</div>
-          <div className="text-2xl mt-1 text-blue-700">
-            {deliveries.filter((d) => d.status === "In Transit").length}
+        <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+          <div className="text-sm text-amber-700">In Progress</div>
+          <div className="text-2xl mt-1 text-amber-700">
+            {deliveries.filter((d) => d.status === "In Progress").length}
           </div>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
@@ -219,10 +219,10 @@ export function DeliveriesPage() {
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Waiting">Waiting</SelectItem>
-                        <SelectItem value="Preparing">Preparing</SelectItem>
+                        <SelectItem value="Pending">Pending</SelectItem>
                         <SelectItem value="In Progress">In Progress</SelectItem>
                         <SelectItem value="Completed">Completed</SelectItem>
+                        <SelectItem value="Failed">Failed</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
