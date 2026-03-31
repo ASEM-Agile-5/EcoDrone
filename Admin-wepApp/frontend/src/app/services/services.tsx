@@ -155,7 +155,7 @@ export const editVendorMenuAPI = async (id: string, menu: MenuItem) => {
 };
 export const addVendorMenuAPI = async (menu: MenuItem) => {
   try {
-    const response = await api.post("vendors/menu/create/", menu);
+    const response = await api.post("vendors/menu/create", menu);
     return response.data;
   } catch (error: any) {
     console.error(error);
