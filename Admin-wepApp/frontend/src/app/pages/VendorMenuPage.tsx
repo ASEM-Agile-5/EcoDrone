@@ -18,6 +18,7 @@ import {
   addVendorMenuAPI,
   editVendorMenuAPI,
   deleteVendorMenuAPI,
+  getCategoriesAPI,
 } from "../services/services";
 import React from "react";
 
@@ -25,6 +26,7 @@ interface DisplayMenuItem {
   id: number;
   name: string;
   category: string;
+  categoryId: string;
   price: number;
   description: string;
   available: boolean;
@@ -36,6 +38,7 @@ function mapApiMenuItem(item: any): DisplayMenuItem {
     id: item.id,
     name: item.name,
     category: item.category ?? "",
+    categoryId: item.category_id ? String(item.category_id) : "",
     price: parseFloat(item.price),
     description: item.description,
     available: item.status === "Active",
@@ -51,6 +54,7 @@ export function VendorMenuPage() {
   const [menuItems, setMenuItems] = useState<DisplayMenuItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<DisplayMenuItem | null>(null);
@@ -59,9 +63,16 @@ export function VendorMenuPage() {
     price: "",
     description: "",
     imageUrl: "",
+    categoryId: "",
   });
   const [editAvailable, setEditAvailable] = useState(true);
   const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    getCategoriesAPI().then((data) => {
+      if (Array.isArray(data)) setCategories(data);
+    });
+  }, []);
 
   useEffect(() => {
     if (vendorId) {
@@ -107,8 +118,9 @@ export function VendorMenuPage() {
         description: formData.description,
         image_url: formData.imageUrl || null,
         vendor_id: vendorId ? parseInt(vendorId) : null,
+        category_id: formData.categoryId ? parseInt(formData.categoryId) : null,
       });
-      setFormData({ name: "", price: "", description: "", imageUrl: "" });
+      setFormData({ name: "", price: "", description: "", imageUrl: "", categoryId: "" });
       setShowAddDialog(false);
       await fetchMenu();
     } catch {
@@ -130,8 +142,9 @@ export function VendorMenuPage() {
         description: formData.description,
         image_url: formData.imageUrl || null,
         status: editAvailable ? "Active" : "Inactive",
+        category_id: formData.categoryId ? parseInt(formData.categoryId) : null,
       });
-      setFormData({ name: "", price: "", description: "", imageUrl: "" });
+      setFormData({ name: "", price: "", description: "", imageUrl: "", categoryId: "" });
       setEditingItem(null);
       setShowEditDialog(false);
       await fetchMenu();
@@ -151,7 +164,7 @@ export function VendorMenuPage() {
     }
   };
 
-  const categories = Array.from(new Set(menuItems.map((item) => item.category)));
+  const categoryGroups = Array.from(new Set(menuItems.map((item) => item.category)));
 
   return (
     <div className="space-y-6">
@@ -173,7 +186,7 @@ export function VendorMenuPage() {
         </div>
         <Button
           onClick={() => {
-            setFormData({ name: "", price: "", description: "", imageUrl: "" });
+            setFormData({ name: "", price: "", description: "", imageUrl: "", categoryId: "" });
             setFormError("");
             setShowAddDialog(true);
           }}
@@ -198,15 +211,15 @@ export function VendorMenuPage() {
         </div>
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
           <div className="text-sm text-gray-700">Categories</div>
-          <div className="text-2xl mt-1 text-gray-700">{categories.length}</div>
+          <div className="text-2xl mt-1 text-gray-700">{categoryGroups.length}</div>
         </div>
       </div>
 
       {/* Menu Items */}
       {loading ? (
         <div className="text-center py-12 text-gray-500">Loading menu...</div>
-      ) : categories.length > 0 ? (
-        categories.map((category) => (
+      ) : categoryGroups.length > 0 ? (
+        categoryGroups.map((category) => (
           <div key={category} className="space-y-4">
             <h2 className="text-xl" style={{ color: "#8A1538" }}>
               {category || "Uncategorized"}
@@ -244,6 +257,7 @@ export function VendorMenuPage() {
                               price: item.price.toString(),
                               description: item.description,
                               imageUrl: item.imageUrl,
+                              categoryId: item.categoryId,
                             });
                             setEditAvailable(item.available);
                             setFormError("");
@@ -317,6 +331,15 @@ export function VendorMenuPage() {
               <Label htmlFor="item-image-url">Image URL (optional)</Label>
               <Input id="item-image-url" placeholder="https://..." value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="item-category">Category (optional)</Label>
+              <select id="item-category" value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8A1538]">
+                <option value="">No category</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={String(c.id)}>{c.name}</option>
+                ))}
+              </select>
+            </div>
             {formError && <p className="text-sm text-red-600">{formError}</p>}
             <Button onClick={handleAddItem} className="w-full bg-[#8A1538] hover:bg-[#6d1029] text-white">
               Add Item
@@ -348,6 +371,15 @@ export function VendorMenuPage() {
             <div className="space-y-2">
               <Label htmlFor="edit-item-image-url">Image URL (optional)</Label>
               <Input id="edit-item-image-url" placeholder="https://..." value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-item-category">Category (optional)</Label>
+              <select id="edit-item-category" value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8A1538]">
+                <option value="">No category</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={String(c.id)}>{c.name}</option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="edit-item-status">Available</Label>
