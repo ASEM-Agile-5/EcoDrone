@@ -1,10 +1,33 @@
+import { useEffect, useState } from "react";
 import { Package, PackageCheck, Clock, Radio } from "lucide-react";
 import { StatCard } from "../components/StatCard";
 import { useNavigate } from "react-router";
+import { getDashboardStatsAPI, getOrdersAPI } from "../services/services";
 import React from "react";
 
 export function OverviewPage() {
   const navigate = useNavigate();
+  const [stats, setStats] = useState({ total_active_orders: 0, active_drones: 0 });
+  const [orders, setOrders] = useState<any[]>([]);
+
+  useEffect(() => {
+    getDashboardStatsAPI().then((data) => {
+      if (data) setStats(data);
+    });
+    getOrdersAPI().then((data) => {
+      if (Array.isArray(data)) setOrders(data);
+    });
+  }, []);
+
+  const pendingCount = orders.filter((o) => o.status === "Waiting").length;
+  const completedCount = orders.filter((o) => o.status === "Completed").length;
+  const recentOrders = [...orders].reverse().slice(0, 4);
+
+  const getStatusColor = (status: string) => {
+    if (status === "Completed") return "bg-green-100 text-green-700";
+    if (status === "In Transit") return "bg-blue-100 text-blue-700";
+    return "bg-amber-100 text-amber-700";
+  };
 
   return (
     <div className="space-y-8">
@@ -18,25 +41,22 @@ export function OverviewPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Active Deliveries"
-          value="24"
+          value={String(stats.total_active_orders)}
           icon={Package}
-          trend={{ value: "+12% from last week", isPositive: true }}
         />
         <StatCard
           title="Pending Deliveries"
-          value="8"
+          value={String(pendingCount)}
           icon={Clock}
-          trend={{ value: "-3% from last week", isPositive: true }}
         />
         <StatCard
           title="Completed Deliveries"
-          value="156"
+          value={String(completedCount)}
           icon={PackageCheck}
-          trend={{ value: "+18% from last week", isPositive: true }}
         />
         <StatCard
           title="Active Drones"
-          value="12"
+          value={String(stats.active_drones)}
           icon={Radio}
         />
       </div>
@@ -46,30 +66,26 @@ export function OverviewPage() {
         {/* Recent Deliveries */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h3 className="mb-4" style={{ color: '#8A1538' }}>Recent Deliveries</h3>
-          <div className="space-y-4">
-            {[
-              { id: "ORD-2341", vendor: "Campus Café", status: "In Transit", time: "5 min ago" },
-              { id: "ORD-2340", vendor: "Bistro", status: "Delivered", time: "12 min ago" },
-              { id: "ORD-2339", vendor: "Smoothie Bar", status: "Preparing", time: "18 min ago" },
-              { id: "ORD-2338", vendor: "Campus Café", status: "Delivered", time: "25 min ago" },
-            ].map((delivery) => (
-              <div key={delivery.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <div className="text-sm">{delivery.id}</div>
-                  <div className="text-xs text-gray-500">{delivery.vendor}</div>
-                </div>
-                <div className="text-right">
-                  <div className={`text-xs px-2 py-1 rounded-full inline-block ${delivery.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                      delivery.status === 'In Transit' ? 'bg-blue-100 text-blue-700' :
-                        'bg-amber-100 text-amber-700'
-                    }`}>
-                    {delivery.status}
+          {recentOrders.length === 0 ? (
+            <p className="text-sm text-gray-500">No recent deliveries.</p>
+          ) : (
+            <div className="space-y-4">
+              {recentOrders.map((order) => (
+                <div key={order.order_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <div className="text-sm">{order.order_id}</div>
+                    <div className="text-xs text-gray-500">{order.vendor}</div>
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">{delivery.time}</div>
+                  <div className="text-right">
+                    <div className={`text-xs px-2 py-1 rounded-full inline-block ${getStatusColor(order.status)}`}>
+                      {order.status}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">{order.timestamp}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* System Status */}
@@ -79,11 +95,10 @@ export function OverviewPage() {
             <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
               <div>
                 <div className="text-sm">Drone Fleet</div>
-                <div className="text-xs text-gray-600 mt-1">All systems operational</div>
+                <div className="text-xs text-gray-600 mt-1">{stats.active_drones} drones active</div>
               </div>
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
-
             <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
               <div>
                 <div className="text-sm">GPS & Navigation</div>
@@ -91,7 +106,6 @@ export function OverviewPage() {
               </div>
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
-
             <div className="flex items-center justify-between p-4 bg-amber-50 rounded-lg border border-amber-200">
               <div>
                 <div className="text-sm">Weather Conditions</div>
@@ -99,11 +113,10 @@ export function OverviewPage() {
               </div>
               <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
             </div>
-
             <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
               <div>
                 <div className="text-sm">Environmental Sensors</div>
-                <div className="text-xs text-gray-600 mt-1">12 sensors active</div>
+                <div className="text-xs text-gray-600 mt-1">All sensors active</div>
               </div>
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>

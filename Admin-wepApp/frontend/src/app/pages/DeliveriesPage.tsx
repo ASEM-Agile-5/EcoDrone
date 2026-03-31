@@ -18,26 +18,12 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import React from "react";
-import { getOrdersAPI } from "../services/services";
+import { getOrdersAPI, getDronesAPI } from "../services/services";
 import { Order } from "../models/order";
-
-const availableDrones = [
-  "DRONE-01",
-  "DRONE-02",
-  "DRONE-03",
-  "DRONE-04",
-  "DRONE-05",
-  "DRONE-06",
-  "DRONE-07",
-  "DRONE-08",
-  "DRONE-09",
-  "DRONE-10",
-  "DRONE-11",
-  "DRONE-12",
-];
 
 export function DeliveriesPage() {
   const [deliveries, setDeliveries] = useState<Order[]>([]);
+  const [availableDrones, setAvailableDrones] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
@@ -60,7 +46,19 @@ export function DeliveriesPage() {
       }
     };
 
+    const fetchDrones = async () => {
+      try {
+        const data = await getDronesAPI();
+        if (data?.drones) {
+          setAvailableDrones(data.drones.map((d: any) => d.name));
+        }
+      } catch (error) {
+        console.error("Failed to fetch drones:", error);
+      }
+    };
+
     fetchOrders();
+    fetchDrones();
   }, []);
 
   const filteredDeliveries = deliveries.filter((delivery) => {

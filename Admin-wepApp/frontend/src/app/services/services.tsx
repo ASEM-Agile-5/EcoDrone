@@ -7,6 +7,24 @@ const api = axios.create({
   withCredentials: true,
 });
 
+export const getDashboardStatsAPI = async () => {
+  try {
+    const response = await api.get("dashboard/stats");
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getVendorOrdersAPI = async (vendorId: string) => {
+  try {
+    const response = await api.post("vendors/orders", { vendor_id: vendorId });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const getUserInfoAPI = async () => {
   try {
     const response = await api.get("user/get-user");

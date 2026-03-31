@@ -1,130 +1,91 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { ArrowLeft, Package, MapPin, Clock, User } from "lucide-react";
+import { getVendorsAPI, getVendorOrdersAPI } from "../services/services";
 import React from "react";
 
-interface Order {
+interface DisplayOrder {
   id: string;
   customerName: string;
   items: string;
   total: number;
-  status: "Pending" | "Preparing" | "Ready" | "Delivered" | "Cancelled";
+  status: string;
   deliveryLocation: string;
   orderTime: string;
   droneId?: string;
 }
 
-// Mock orders data for different vendors
-const mockOrdersData: { [key: string]: Order[] } = {
-  "VND-001": [
-    {
-      id: "ORD-1245",
-      customerName: "Kwame Asante",
-      items: "2x Cappuccino, 1x Croissant",
-      total: 30.5,
-      status: "Delivered",
-      deliveryLocation: "Engineering Block",
-      orderTime: "2026-02-13 08:30",
-      droneId: "DRN-001",
-    },
-    {
-      id: "ORD-1258",
-      customerName: "Ama Mensah",
-      items: "1x Espresso",
-      total: 8.5,
-      status: "Preparing",
-      deliveryLocation: "Library",
-      orderTime: "2026-02-13 09:15",
-    },
-    {
-      id: "ORD-1262",
-      customerName: "Kofi Boateng",
-      items: "3x Cappuccino, 2x Croissant",
-      total: 49.0,
-      status: "Ready",
-      deliveryLocation: "Student Center",
-      orderTime: "2026-02-13 09:45",
-    },
-  ],
-  "VND-002": [
-    {
-      id: "ORD-1251",
-      customerName: "Akua Owusu",
-      items: "1x Caesar Salad, 1x Grilled Chicken Sandwich",
-      total: 43.5,
-      status: "Delivered",
-      deliveryLocation: "Admin Building",
-      orderTime: "2026-02-13 12:30",
-      droneId: "DRN-002",
-    },
-    {
-      id: "ORD-1265",
-      customerName: "Yaw Adom",
-      items: "2x Grilled Chicken Sandwich",
-      total: 50.0,
-      status: "Pending",
-      deliveryLocation: "Sports Complex",
-      orderTime: "2026-02-13 13:00",
-    },
-  ],
-  "VND-003": [
-    {
-      id: "ORD-1248",
-      customerName: "Esi Nyarko",
-      items: "1x Mango Smoothie, 1x Green Detox",
-      total: 31.5,
-      status: "Delivered",
-      deliveryLocation: "South Campus",
-      orderTime: "2026-02-13 10:15",
-      droneId: "DRN-003",
-    },
-    {
-      id: "ORD-1267",
-      customerName: "Kwabena Mensah",
-      items: "2x Green Detox",
-      total: 33.0,
-      status: "Preparing",
-      deliveryLocation: "East Campus",
-      orderTime: "2026-02-13 10:45",
-    },
-  ],
-  "VND-004": [
-    {
-      id: "ORD-1240",
-      customerName: "Abena Osei",
-      items: "1x Margherita Pizza",
-      total: 28.0,
-      status: "Cancelled",
-      deliveryLocation: "North Campus",
-      orderTime: "2026-02-12 18:30",
-    },
-  ],
-};
+function mapApiOrder(order: any): DisplayOrder {
+  const itemsSummary = Array.isArray(order.items)
+    ? order.items.map((i: any) => `${i.quantity}x ${i.name}`).join(", ")
+    : order.items ?? "";
 
-const vendorNames: { [key: string]: string } = {
-  "VND-001": "Campus Café",
-  "VND-002": "Bistro",
-  "VND-003": "Smoothie Bar",
-  "VND-004": "Pizza Corner",
-};
+  return {
+    id: order.order_id,
+    customerName: order.customerName ?? "—",
+    items: itemsSummary,
+    total: order.totalAmount ?? 0,
+    status: order.status,
+    deliveryLocation: order.location ?? "—",
+    orderTime: order.timestamp ?? "—",
+    droneId: order.drone && order.drone !== "None" ? order.drone : undefined,
+  };
+}
 
 export function VendorOrdersPage() {
   const { vendorId } = useParams<{ vendorId: string }>();
   const navigate = useNavigate();
-  const [orders] = useState<Order[]>(vendorId ? mockOrdersData[vendorId] || [] : []);
+
+  const [vendorName, setVendorName] = useState("");
+  const [orders, setOrders] = useState<DisplayOrder[]>([]);
+  const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("All");
 
-  const vendorName = vendorId ? vendorNames[vendorId] || "Unknown Vendor" : "Unknown Vendor";
+  useEffect(() => {
+    if (!vendorId) return;
+    fetchVendorName();
+    fetchOrders();
+  }, [vendorId]);
+
+  const fetchVendorName = async () => {
+    try {
+      const data = await getVendorsAPI();
+      if (data?.vendors) {
+        const vendor = data.vendors.find((v: any) => String(v.id) === vendorId);
+        setVendorName(vendor?.name ?? "Unknown Vendor");
+      }
+    } catch {
+      setVendorName("Unknown Vendor");
+    }
+  };
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const data = await getVendorOrdersAPI(vendorId!);
+      if (Array.isArray(data)) {
+        setOrders(data.map(mapApiOrder));
+      } else if (data?.message) {
+        setOrders([]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Pending":
+      case "Waiting":
         return "bg-amber-100 text-amber-700 border-amber-200";
       case "Preparing":
+      case "In Progress":
         return "bg-blue-100 text-blue-700 border-blue-200";
       case "Ready":
+      case "In Transit":
         return "bg-purple-100 text-purple-700 border-purple-200";
       case "Delivered":
+      case "Completed":
         return "bg-green-100 text-green-700 border-green-200";
       case "Cancelled":
         return "bg-red-100 text-red-700 border-red-200";
@@ -133,16 +94,15 @@ export function VendorOrdersPage() {
     }
   };
 
-  const filteredOrders = orders.filter((order) => {
-    if (statusFilter === "All") return true;
-    return order.status === statusFilter;
-  });
+  const filteredOrders = orders.filter((order) =>
+    statusFilter === "All" ? true : order.status === statusFilter
+  );
 
   const stats = {
     total: orders.length,
-    pending: orders.filter((o) => o.status === "Pending").length,
-    preparing: orders.filter((o) => o.status === "Preparing").length,
-    delivered: orders.filter((o) => o.status === "Delivered").length,
+    pending: orders.filter((o) => ["Pending", "Waiting"].includes(o.status)).length,
+    preparing: orders.filter((o) => ["Preparing", "In Progress"].includes(o.status)).length,
+    delivered: orders.filter((o) => ["Delivered", "Completed"].includes(o.status)).length,
   };
 
   return (
@@ -158,7 +118,7 @@ export function VendorOrdersPage() {
           </button>
           <div>
             <h1 className="text-3xl mb-2" style={{ color: "#8A1538" }}>
-              {vendorName} - Orders
+              {vendorName || "Loading..."} — Orders
             </h1>
             <p className="text-gray-600">View all orders from this vendor</p>
           </div>
@@ -195,17 +155,20 @@ export function VendorOrdersPage() {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538] focus:border-transparent"
           >
             <option value="All">All Status</option>
-            <option value="Pending">Pending</option>
+            <option value="Waiting">Waiting</option>
             <option value="Preparing">Preparing</option>
-            <option value="Ready">Ready</option>
-            <option value="Delivered">Delivered</option>
+            <option value="In Progress">In Progress</option>
+            <option value="In Transit">In Transit</option>
+            <option value="Completed">Completed</option>
             <option value="Cancelled">Cancelled</option>
           </select>
         </div>
       </div>
 
       {/* Orders List */}
-      {filteredOrders.length > 0 ? (
+      {loading ? (
+        <div className="text-center py-12 text-gray-500">Loading orders...</div>
+      ) : filteredOrders.length > 0 ? (
         <div className="space-y-4">
           {filteredOrders.map((order) => (
             <div
@@ -225,11 +188,7 @@ export function VendorOrdersPage() {
                     </div>
                   </div>
                 </div>
-                <span
-                  className={`px-3 py-1 rounded-full text-xs border ${getStatusColor(
-                    order.status
-                  )}`}
-                >
+                <span className={`px-3 py-1 rounded-full text-xs border ${getStatusColor(order.status)}`}>
                   {order.status}
                 </span>
               </div>
@@ -237,7 +196,7 @@ export function VendorOrdersPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <div className="text-sm text-gray-600 mb-1">Items</div>
-                  <div className="text-sm">{order.items}</div>
+                  <div className="text-sm">{order.items || "—"}</div>
                 </div>
                 <div>
                   <div className="text-sm text-gray-600 mb-1">Total Amount</div>
@@ -272,9 +231,7 @@ export function VendorOrdersPage() {
       ) : (
         <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-100 text-center">
           <Package className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg mb-2" style={{ color: "#8A1538" }}>
-            No orders found
-          </h3>
+          <h3 className="text-lg mb-2" style={{ color: "#8A1538" }}>No orders found</h3>
           <p className="text-gray-600">
             {statusFilter === "All"
               ? "This vendor has no orders yet"
