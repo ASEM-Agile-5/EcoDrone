@@ -22,6 +22,11 @@ import {
 } from "../services/services";
 import React from "react";
 
+interface CategoryOption {
+  id: number;
+  name: string;
+}
+
 interface DisplayMenuItem {
   id: number;
   name: string;
@@ -55,7 +60,9 @@ export function VendorMenuPage() {
   const [menuItems, setMenuItems] = useState<DisplayMenuItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingItem, setEditingItem] = useState<DisplayMenuItem | null>(null);
@@ -70,9 +77,7 @@ export function VendorMenuPage() {
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
-    getCategoriesAPI().then((data) => {
-      if (Array.isArray(data)) setCategories(data);
-    });
+    void fetchCategories();
   }, []);
 
   useEffect(() => {
@@ -103,6 +108,26 @@ export function VendorMenuPage() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    setCategoriesLoading(true);
+    setCategoriesError("");
+    try {
+      const data = await getCategoriesAPI();
+      if (Array.isArray(data)) {
+        setCategories(data);
+        return;
+      }
+
+      setCategories([]);
+      setCategoriesError("Categories are unavailable right now.");
+    } catch {
+      setCategories([]);
+      setCategoriesError("Categories are unavailable right now.");
+    } finally {
+      setCategoriesLoading(false);
     }
   };
 
@@ -166,6 +191,12 @@ export function VendorMenuPage() {
   };
 
   const categoryGroups = Array.from(new Set(menuItems.map((item) => item.category)));
+  const categoryOptions =
+    editingItem?.categoryId &&
+    editingItem.category &&
+    !categories.some((category) => String(category.id) === editingItem.categoryId)
+      ? [...categories, { id: Number(editingItem.categoryId), name: editingItem.category }]
+      : categories;
 
   return (
     <div className="space-y-6">
@@ -334,12 +365,26 @@ export function VendorMenuPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="item-category">Category (optional)</Label>
-              <select id="item-category" value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8A1538]">
+              <select
+                id="item-category"
+                value={formData.categoryId}
+                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                disabled={categoriesLoading && categories.length === 0}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8A1538] disabled:bg-gray-50 disabled:text-gray-500"
+              >
                 <option value="">No category</option>
                 {categories.map((c) => (
                   <option key={c.id} value={String(c.id)}>{c.name}</option>
                 ))}
               </select>
+              <p className="text-xs text-gray-500">
+                Menu items are linked to existing category records, so choose one here after categories have been created.
+              </p>
+              {categoriesLoading && <p className="text-xs text-gray-500">Loading categories...</p>}
+              {!categoriesLoading && !categoriesError && categories.length === 0 && (
+                <p className="text-xs text-gray-500">No categories are available yet.</p>
+              )}
+              {categoriesError && <p className="text-xs text-red-600">{categoriesError}</p>}
             </div>
             {formError && <p className="text-sm text-red-600">{formError}</p>}
             <Button onClick={handleAddItem} className="w-full bg-[#8A1538] hover:bg-[#6d1029] text-white">
@@ -375,12 +420,26 @@ export function VendorMenuPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-item-category">Category (optional)</Label>
-              <select id="edit-item-category" value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8A1538]">
+              <select
+                id="edit-item-category"
+                value={formData.categoryId}
+                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                disabled={categoriesLoading && categoryOptions.length === 0}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#8A1538] disabled:bg-gray-50 disabled:text-gray-500"
+              >
                 <option value="">No category</option>
-                {categories.map((c) => (
+                {categoryOptions.map((c) => (
                   <option key={c.id} value={String(c.id)}>{c.name}</option>
                 ))}
               </select>
+              <p className="text-xs text-gray-500">
+                The selected value is saved as the menu item's `category_id`.
+              </p>
+              {categoriesLoading && <p className="text-xs text-gray-500">Loading categories...</p>}
+              {!categoriesLoading && !categoriesError && categoryOptions.length === 0 && (
+                <p className="text-xs text-gray-500">No categories are available yet.</p>
+              )}
+              {categoriesError && <p className="text-xs text-red-600">{categoriesError}</p>}
             </div>
             <div className="flex items-center justify-between">
               <Label htmlFor="edit-item-status">Available</Label>

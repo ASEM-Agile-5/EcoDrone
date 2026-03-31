@@ -20,22 +20,26 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class MenuSerializer(serializers.ModelSerializer):
-    # Accept related ids on writes while keeping the response payload simple.
+    category = serializers.CharField(source='category.name', read_only=True)
     category_id = serializers.PrimaryKeyRelatedField(
-        queryset=Category.objects.all(), source='category', write_only=True, required=False, allow_null=True
+        queryset=Category.objects.all(), source='category', required=False, allow_null=True
     )
     vendor_id = serializers.PrimaryKeyRelatedField(
         queryset=Vendor.objects.all(), source='vendor', write_only=True, required=False, allow_null=True
     )
     class Meta:
         model = Menu
-        fields = ['id', 'name', 'price', 'description', 'image_url', 'category_id', 'vendor_id', 'status', 'date_added']
-        read_only_fields = ['id', 'status', 'date_added']
+        fields = ['id', 'name', 'price', 'description', 'image_url', 'category', 'category_id', 'vendor_id', 'status', 'date_added']
+        read_only_fields = ['id', 'category', 'status', 'date_added']
         
 class MenuUpdateSerializer(serializers.ModelSerializer):
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), source='category', required=False, allow_null=True
+    )
+
     class Meta:
         model = Menu
-        fields = ['name', 'price', 'description', 'image_url', 'status']
+        fields = ['name', 'price', 'description', 'image_url', 'status', 'category_id']
 
 
 class MenuDeleteSerializer(serializers.ModelSerializer):

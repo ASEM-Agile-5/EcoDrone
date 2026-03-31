@@ -160,7 +160,7 @@ class MenuDetailView(APIView):
             if not user.is_superuser:
                 return Response({"error": "Only superusers can register vendors"}, status=status.HTTP_403_FORBIDDEN)
 
-            menus = Menu.objects.filter(vendor_id=vendor_id)
+            menus = Menu.objects.filter(vendor_id=vendor_id).select_related('category')
             serializer = MenuSerializer(menus, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except jwt.ExpiredSignatureError:
@@ -186,8 +186,9 @@ class MenuUpdateView(APIView):
             if not user.is_superuser:
                 return Response({"error": "Only superusers can register vendors"}, status=status.HTTP_403_FORBIDDEN)
 
-            menus = Menu.objects.get(id=vendor_id)
-            if not menus:
+            try:
+                menus = Menu.objects.get(id=vendor_id)
+            except Menu.DoesNotExist:
                 return Response({"error": "Menu item not found"}, status=status.HTTP_404_NOT_FOUND)
              
             serializer = MenuUpdateSerializer(menus, data=request.data, partial=True)
@@ -237,13 +238,16 @@ class MenuUpdateView(APIView):
            
 class CategoryListView(APIView):
     def get(self, request):
+        User = get_user_model()
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
 
         if not token:
             return Response({"error": "Token not found"}, status=status.HTTP_401_UNAUTHORIZED)
             
         try:
-            user = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            user_id = payload['user_id']
+            user = User.objects.get(id=user_id)
             if not user.is_superuser:
                 return Response({"error": "Only superusers can register vendors"}, status=status.HTTP_403_FORBIDDEN)
             
