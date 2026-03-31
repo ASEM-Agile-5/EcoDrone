@@ -2,6 +2,13 @@ from rest_framework import serializers
 from .models import Vendor, Category, Menu
 
 class VendorSerializer(serializers.ModelSerializer):
+    menu_count = serializers.SerializerMethodField()
+
+    def get_menu_count(self, obj):
+        if hasattr(obj, 'calculated_menu_count'):
+            return obj.calculated_menu_count
+        return Menu.objects.filter(vendor=obj).count()
+
     class Meta:
         model = Vendor
         fields = ['id', 'vendor_id', 'name', 'registered_by', 'registration_time', 'menu_count', 'terms_agreed_at','owned_by', 'vendor_contact', 'owner_contact', 'volume_processed', 'value_processed', 'status', 'image_url', 'eta', 'rating']

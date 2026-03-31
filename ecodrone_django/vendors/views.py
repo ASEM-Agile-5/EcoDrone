@@ -4,6 +4,7 @@ from rest_framework import status
 import jwt
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 from .models import Vendor, Category, Menu
 from .serializers import CategorySerializer, MenuSerializer, VendorSerializer, VendorStatusSerializer, MenuUpdateSerializer, MenuDeleteSerializer, RegisterVendorSerializer
 from order_placement.models import Order
@@ -69,13 +70,17 @@ class VendorListView(APIView):
             user_id = payload['user_id']
             user = User.objects.get(id=user_id)
             if not user.is_superuser:
-                vendors = Vendor.objects.filter(status='Active')
+                vendors = Vendor.objects.filter(status='Active').annotate(
+                    calculated_menu_count=Count('menu')
+                )
                 serializer = VendorSerializer(vendors, many=True)
                 return Response({
                     "vendors": serializer.data
                 }, status=status.HTTP_200_OK)
             else:
-                vendors = Vendor.objects.all()
+                vendors = Vendor.objects.all().annotate(
+                    calculated_menu_count=Count('menu')
+                )
                 serializer = VendorSerializer(vendors, many=True)
                 return Response({
                     "vendors": serializer.data
