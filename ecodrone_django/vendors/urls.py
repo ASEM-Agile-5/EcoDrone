@@ -1,9 +1,10 @@
 from django.urls import path
-from .views import RegisterVendorView, MenuCreateView, MenuDetailView, OrderByVendorView, CategoryListView, VendorListView, MenuUpdateView, SetVendorStatusView, CreateCategoryView
+from .views import RegisterVendorView, MenuCreateView, MenuDetailView, OrderByVendorView, CategoryListView, VendorListView, MenuUpdateView, SetVendorStatusView, CreateCategoryView, VendorUpdateView
 
 urlpatterns = [
     path('vendors', VendorListView.as_view(), name='vendor-list'),
     path('register', RegisterVendorView.as_view(), name='register-vendor'),
+    path('update/<int:pk>', VendorUpdateView.as_view(), name='vendor-update'),
     path('categories', CategoryListView.as_view(), name='category-list'),
     path('menu/create', MenuCreateView.as_view(), name='menu-create'),
     path('menu/update/<int:vendor_id>', MenuUpdateView.as_view(), name='menu-update'),

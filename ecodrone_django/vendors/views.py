@@ -300,6 +300,41 @@ class OrderByVendorView(APIView):
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
+class VendorUpdateView(APIView):
+    def put(self, request, pk):
+        User = get_user_model()
+        token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
+
+        if not token:
+            return Response({"error": "Token not found"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            user_id = payload['user_id']
+            user = User.objects.get(id=user_id)
+
+            if not user.is_superuser:
+                return Response({"error": "Only superusers can update vendors"}, status=status.HTTP_403_FORBIDDEN)
+
+            try:
+                vendor = Vendor.objects.get(id=pk)
+            except Vendor.DoesNotExist:
+                return Response({"error": "Vendor not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = VendorSerializer(vendor, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class SetVendorStatusView(APIView):
     def post(self, request):
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
