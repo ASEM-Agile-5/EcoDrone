@@ -31,8 +31,10 @@ class LoginView(views.APIView):
             
             serializer = LoginSerializer(data=request.data)
         
-            if serializer.is_valid():
-                user = serializer.validated_data['user']
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            user = serializer.validated_data['user']
 
             # 1. Use timezone-aware datetimes (utcnow is deprecated)
             now = datetime.datetime.now(datetime.timezone.utc)
