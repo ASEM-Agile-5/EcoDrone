@@ -113,6 +113,16 @@ export const getVendorMenuAPI = async (id: string) => {
     console.log(error);
   }
 };
+
+export const deleteVendorMenuAPI = async (id: string) => {
+  try {
+    const response = await api.delete(`vendors/menu/delete/${id}`);
+    return response.data;
+  } catch (error: any) {
+    console.error(error);
+    throw error;
+  }
+};
 export const editVendorMenuAPI = async (id: string, menu: MenuItem) => {
   try {
     const response = await api.put(`vendors/menu/${id}`, menu);
