@@ -40,14 +40,17 @@ export function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user, loading, refetchUser, setLoading } = useUser();
+  const { user, loading, refetchUser } = useUser();
 
   useEffect(() => {
     refetchUser();
+  }, []);
+
+  useEffect(() => {
     if (!loading && !user) {
       navigate("/");
     }
-  }, []);
+  }, [loading, user]);
 
   return (
     <div
