@@ -9,6 +9,7 @@ import { VendorOrdersPage } from "./pages/VendorOrdersPage";
 import { EnvironmentalPage } from "./pages/EnvironmentalPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { DronesPage } from "./pages/DronesPage";
+import { FlightControlPage } from "./pages/FlightControlPage";
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
       { path: "deliveries", Component: DeliveriesPage },
       { path: "drones", Component: DronesPage },
       { path: "vendors", Component: VendorsPage },
+      { path: "flight-control", Component: FlightControlPage },
       { path: "vendors/:vendorId/menu", Component: VendorMenuPage },
       { path: "vendors/:vendorId/orders", Component: VendorOrdersPage },
       { path: "environmental", Component: EnvironmentalPage },
