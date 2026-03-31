@@ -30,7 +30,7 @@ interface DisplayVendor {
   vendorContact: string;
   ownerContact: string;
   status: "Active" | "Inactive";
-  menuSynced: boolean;
+  menuItems: number;
   totalOrders: number;
   lastSync: string;
 }
@@ -44,7 +44,7 @@ function mapApiVendor(v: any): DisplayVendor {
     vendorContact: v.vendor_contact,
     ownerContact: v.owner_contact,
     status: v.status as "Active" | "Inactive",
-    menuSynced: (v.menu_count ?? 0) > 0,
+    menuItems: v.menu_count ?? 0,
     totalOrders: v.volume_processed ?? 0,
     lastSync: v.registration_time
       ? new Date(v.registration_time).toLocaleString()
@@ -162,7 +162,7 @@ export function VendorsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl mb-2" style={{ color: '#8A1538' }}>Vendor Management</h1>
-          <p className="text-gray-600">Manage food vendors and menu synchronization</p>
+          <p className="text-gray-600">Manage food vendors and their menu items</p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -217,8 +217,8 @@ export function VendorsPage() {
           <div className="text-2xl mt-1 text-green-700">{vendors.filter((v) => v.status === "Active").length}</div>
         </div>
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-          <div className="text-sm text-blue-700">Menu Synced</div>
-          <div className="text-2xl mt-1 text-blue-700">{vendors.length}</div>
+          <div className="text-sm text-blue-700">Menu Items</div>
+          <div className="text-2xl mt-1 text-blue-700">{vendors.reduce((sum, v) => sum + v.menuItems, 0)}</div>
         </div>
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
           <div className="text-sm text-gray-700">Total Orders</div>
@@ -278,10 +278,8 @@ export function VendorsPage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Menu Sync</span>
-                  <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">
-                    Synced
-                  </span>
+                  <span className="text-sm text-gray-600">Menu Items</span>
+                  <span className="text-sm">{vendor.menuItems}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Total Orders</span>
