@@ -214,7 +214,7 @@ export function VendorsPage() {
         </div>
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
           <div className="text-sm text-blue-700">Menu Synced</div>
-          <div className="text-2xl mt-1 text-blue-700">{vendors.filter((v) => v.menuSynced).length}</div>
+          <div className="text-2xl mt-1 text-blue-700">{vendors.length}</div>
         </div>
         <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
           <div className="text-sm text-gray-700">Total Orders</div>
@@ -275,7 +275,7 @@ export function VendorsPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Menu Sync</span>
-                  <span className={`px-3 py-1 rounded-full text-xs ${vendor.menuSynced ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
+                  <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700">
                     Synced
                   </span>
                 </div>
