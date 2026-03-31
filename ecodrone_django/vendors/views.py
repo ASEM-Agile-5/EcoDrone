@@ -297,7 +297,7 @@ class OrderByVendorView(APIView):
             if not vendor_id:
                 return Response({"error": "vendor_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-            orders = Order.objects.filter(vendor__id=vendor_id)
+            orders = Order.objects.select_related('vendor', 'user', 'user__accounts').prefetch_related('items').filter(vendor__id=vendor_id)
 
             serializer = OrderSerializer(orders, many=True)
             if not serializer.data:

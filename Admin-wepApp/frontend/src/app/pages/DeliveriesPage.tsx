@@ -20,6 +20,12 @@ import {
 import React from "react";
 import { getOrderDetailsAPI, getOrdersAPI, getDronesAPI, updateOrderDeliveryAPI } from "../services/services";
 
+interface DeliveryItem {
+  name: string;
+  quantity: number;
+  price: number;
+}
+
 interface Order {
   order_id: string;
   vendor: string;
@@ -28,6 +34,7 @@ interface Order {
   assigned_drone: string;
   timestamp: string;
   totalAmount: number;
+  items: DeliveryItem[];
   customerName: string;
   customerEmail: string;
   imageUrl: string;
@@ -56,6 +63,7 @@ const mapApiOrder = (order: any): Order => ({
   assigned_drone: order.assigned_drone ?? "Unassigned",
   timestamp: order.timestamp ? new Date(order.timestamp).toLocaleString() : "-",
   totalAmount: Number(order.total_amount ?? 0),
+  items: Array.isArray(order.items) ? order.items : [],
   customerName: order.customer_name ?? "-",
   customerEmail: order.customer_email ?? "-",
   imageUrl: order.image_url ?? "",
@@ -479,6 +487,36 @@ export function DeliveriesPage() {
                   <span className="text-gray-500">Timestamp:</span>{" "}
                   {viewingOrder.timestamp}
                 </p>
+              </div>
+
+              <div className="border-t pt-3">
+                <h3
+                  className="text-sm font-semibold mb-2"
+                  style={{ color: "#8A1538" }}
+                >
+                  Ordered Items
+                </h3>
+                {viewingOrder.items.length > 0 ? (
+                  <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                    {viewingOrder.items.map((item, index) => (
+                      <div
+                        key={`${item.name}-${index}`}
+                        className="flex justify-between items-center"
+                      >
+                        <span className="text-sm">
+                          {item.name} x{item.quantity}
+                        </span>
+                        <span className="text-sm font-mono">
+                          ₵{(Number(item.price) * item.quantity).toFixed(2)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    No ordered items are stored for this order yet.
+                  </p>
+                )}
               </div>
 
               <div className="border-t pt-3">

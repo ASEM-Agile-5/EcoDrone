@@ -33,7 +33,7 @@ class OrderView(APIView):
                 if not user.is_superuser:
                     return Response({"error": "Only superusers can access this endpoint"}, status=status.HTTP_403_FORBIDDEN)
                 
-                orders = Order.objects.select_related('vendor', 'user', 'user__accounts').all()
+                orders = Order.objects.select_related('vendor', 'user', 'user__accounts').prefetch_related('items').all()
                 serializer = OrderSerializer(orders, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except User.DoesNotExist:
@@ -198,7 +198,7 @@ class OrderDetailsView(APIView):
             if not order_id:
                 return Response({"error": "order_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-            order = Order.objects.select_related('vendor', 'user', 'user__accounts').get(order_id=order_id)
+            order = Order.objects.select_related('vendor', 'user', 'user__accounts').prefetch_related('items').get(order_id=order_id)
             serializer = OrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_200_OK)
             
