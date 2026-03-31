@@ -33,11 +33,22 @@ export function DeliveriesPage() {
   const [projectsLoading, setProjectsLoading] = useState(false);
 
   useEffect(() => {
+    const normalizeStatus = (s: string): string => {
+      switch (s?.toLowerCase()) {
+        case "in progress": return "In Progress";
+        case "pending": return "Pending";
+        case "completed": return "Completed";
+        case "failed": return "Failed";
+        default: return s ?? "";
+      }
+    };
+
     const fetchOrders = async () => {
       try {
         setProjectsLoading(true);
         const data = await getOrdersAPI();
-        setDeliveries(data || []);
+        const normalized = (data || []).map((o: any) => ({ ...o, status: normalizeStatus(o.status) }));
+        setDeliveries(normalized);
       } catch (error) {
         console.error("Failed to fetch projects:", error);
         setDeliveries([]);

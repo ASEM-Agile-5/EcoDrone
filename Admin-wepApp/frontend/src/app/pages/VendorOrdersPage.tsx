@@ -15,6 +15,16 @@ interface DisplayOrder {
   droneId?: string;
 }
 
+function normalizeStatus(s: string): string {
+  switch (s?.toLowerCase()) {
+    case "in progress": return "In Progress";
+    case "pending": return "Pending";
+    case "completed": return "Completed";
+    case "failed": return "Failed";
+    default: return s ?? "—";
+  }
+}
+
 function mapApiOrder(order: any): DisplayOrder {
   const itemsSummary = Array.isArray(order.items)
     ? order.items.map((i: any) => `${i.quantity}x ${i.name}`).join(", ")
@@ -25,7 +35,7 @@ function mapApiOrder(order: any): DisplayOrder {
     customerName: order.customerName ?? "—",
     items: itemsSummary,
     total: order.totalAmount ?? 0,
-    status: order.status,
+    status: normalizeStatus(order.status),
     deliveryLocation: order.location ?? "—",
     orderTime: order.timestamp ?? "—",
     droneId: order.drone && order.drone !== "None" ? order.drone : undefined,
