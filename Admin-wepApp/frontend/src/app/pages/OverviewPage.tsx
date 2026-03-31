@@ -106,13 +106,6 @@ export function OverviewPage() {
               </div>
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             </div>
-            <div className="flex items-center justify-between p-4 bg-amber-50 rounded-lg border border-amber-200">
-              <div>
-                <div className="text-sm">Weather Conditions</div>
-                <div className="text-xs text-gray-600 mt-1">Moderate wind - Monitor</div>
-              </div>
-              <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
-            </div>
             <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
               <div>
                 <div className="text-sm">Environmental Sensors</div>
