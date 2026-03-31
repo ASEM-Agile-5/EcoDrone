@@ -18,7 +18,6 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.order_id} - {self.status}"
 
-<<<<<<< HEAD
 class Location(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
@@ -26,11 +25,9 @@ class Location(models.Model):
     longitude = models.FloatField()
     description = models.TextField()
 
-
     def __str__(self):
         return self.name
 
-=======
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
@@ -40,4 +37,3 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.name} x{self.quantity}"
->>>>>>> refs/remotes/origin/dev
