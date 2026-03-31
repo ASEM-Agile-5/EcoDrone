@@ -20,6 +20,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class MenuSerializer(serializers.ModelSerializer):
+    # Accept related ids on writes while keeping the response payload simple.
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(), source='category', write_only=True, required=False, allow_null=True
     )
@@ -48,4 +49,3 @@ class VendorStatusSerializer(serializers.ModelSerializer):
         model = Vendor
         fields = ['vendor_id', 'status']
         read_only_fields = ['vendor_id']
-

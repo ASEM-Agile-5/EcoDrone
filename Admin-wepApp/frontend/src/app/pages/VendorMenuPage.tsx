@@ -34,6 +34,7 @@ interface DisplayMenuItem {
 }
 
 function mapApiMenuItem(item: any): DisplayMenuItem {
+  // Normalize API data so the page can render a consistent shape.
   return {
     id: item.id,
     name: item.name,
