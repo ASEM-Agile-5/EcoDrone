@@ -68,13 +68,18 @@ export const editDroneAPI = async (
   name: string,
   model: string,
   maxPayload: string,
+  droneStatus: string,
+  batteryLevel: string,
+  currentLocation: string,
 ) => {
-  console.log(name, model, maxPayload);
   try {
     const response = await api.put(`drones/update/${id}`, {
-      name: name,
-      model: model,
-      maxPayload: maxPayload,
+      name,
+      model,
+      max_payload: maxPayload,
+      status: droneStatus,
+      battery_level: batteryLevel,
+      current_location: currentLocation,
     });
 
     return response;
