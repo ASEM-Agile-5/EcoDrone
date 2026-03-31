@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from vendors.models import Vendor
+import uuid
 
 
 class Order(models.Model):
@@ -16,3 +17,15 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order {self.order_id} - {self.status}"
+
+class Location(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    description = models.TextField()
+
+
+    def __str__(self):
+        return self.name
+

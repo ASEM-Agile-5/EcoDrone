@@ -8,19 +8,9 @@ from .models import Vendor, Category, Menu
 from .serializers import CategorySerializer, MenuSerializer, VendorSerializer, VendorStatusSerializer, MenuUpdateSerializer, MenuDeleteSerializer, RegisterVendorSerializer
 from order_placement.models import Order
 from order_placement.serializers import OrderSerializer
-from drf_spectacular.utils import extend_schema, OpenApiResponse
-
 
 
 class RegisterVendorView(APIView):
-    @extend_schema(
-        request=RegisterVendorSerializer,
-        responses={
-            201: VendorSerializer,
-            400: OpenApiResponse(description='Bad request'),
-            401: OpenApiResponse(description='Unauthorized'),
-        }
-    )
     def post(self, request):
         User = get_user_model()
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
@@ -50,13 +40,6 @@ class RegisterVendorView(APIView):
 
 
 class VendorListView(APIView):
-    @extend_schema(
-        responses={
-            200: VendorSerializer,
-            400: OpenApiResponse(description='Bad request'),
-            401: OpenApiResponse(description='Unauthorized'),
-        }
-    )
     def get(self, request):
         User = get_user_model()
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
@@ -138,13 +121,7 @@ class CreateCategoryView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 class MenuDetailView(APIView):
-    @extend_schema(
-        responses={
-            200: MenuSerializer,
-            400: OpenApiResponse(description='Bad request'),
-            401: OpenApiResponse(description='Unauthorized'),
-        }
-    )
+
     def get(self, request, vendor_id):
         User = get_user_model() 
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')

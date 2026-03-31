@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Order
+from .models import Order, Location
 
 
 
@@ -36,3 +36,9 @@ class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['order_id', 'status']
+
+class LocationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Location
+        fields = ['id', 'latitude', 'longitude', 'name', 'description']
+        read_only_fields = ['id']
