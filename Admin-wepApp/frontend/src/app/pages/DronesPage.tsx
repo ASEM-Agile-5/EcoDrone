@@ -23,6 +23,9 @@ export function DronesPage() {
   const [name, setName] = useState("");
   const [model, setModel] = useState("");
   const [maxPayload, setMaxPayload] = useState("");
+  const [droneStatus, setDroneStatus] = useState("Idle");
+  const [batteryLevel, setBatteryLevel] = useState("");
+  const [currentLocation, setCurrentLocation] = useState("");
   const [editingDrone, setEditingDrone] = useState<Drone | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Drone>>({});
   const [drones, setDrones] = useState<Drone[]>([]);
@@ -70,10 +73,13 @@ export function DronesPage() {
     }
     setAddError("");
     try {
-      await addDroneAPI(name, model, maxPayload);
+      await addDroneAPI(name, model, maxPayload, droneStatus, batteryLevel, currentLocation);
       setName("");
       setModel("");
       setMaxPayload("");
+      setDroneStatus("Idle");
+      setBatteryLevel("");
+      setCurrentLocation("");
       setShowAddModal(false);
       await fetchDrones();
     } catch (error) {
@@ -386,6 +392,47 @@ export function DronesPage() {
                   placeholder="e.g., 2.5kg"
                   value={maxPayload}
                   onChange={(e) => setMaxPayload(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-gray-700">
+                  Status
+                </label>
+                <select
+                  value={droneStatus}
+                  onChange={(e) => setDroneStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
+                >
+                  <option value="Idle">Idle</option>
+                  <option value="Active">Active</option>
+                  <option value="Charging">Charging</option>
+                  <option value="Maintenance">Maintenance</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-gray-700">
+                  Battery Level (%)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
+                  placeholder="e.g., 85"
+                  value={batteryLevel}
+                  onChange={(e) => setBatteryLevel(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-gray-700">
+                  Current Location
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
+                  placeholder="e.g., Base Station"
+                  value={currentLocation}
+                  onChange={(e) => setCurrentLocation(e.target.value)}
                 />
               </div>
             </div>

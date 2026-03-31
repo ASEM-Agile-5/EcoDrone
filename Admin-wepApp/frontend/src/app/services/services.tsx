@@ -39,13 +39,18 @@ export const addDroneAPI = async (
   name: string,
   model: string,
   maxPayload: string,
+  droneStatus?: string,
+  batteryLevel?: string,
+  currentLocation?: string,
 ) => {
-  console.log(name, model, maxPayload);
   try {
     const response = await api.post("drones/register", {
-      name: name,
-      model: model,
+      name,
+      model,
       max_payload: maxPayload,
+      status: droneStatus,
+      battery_level: batteryLevel,
+      current_location: currentLocation,
     });
 
     return response;
