@@ -4,10 +4,12 @@ from .models import Order
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    vendor_name = serializers.CharField(source='vendor.name', read_only=True)
+
     class Meta:
         model = Order
-        fields = ['order_id', 'user', 'timestamp', 'vendor', 'location', 'total_amount', 'status', 'assigned_drone', 'image_url']
-        read_only_fields = ['order_id', 'status']
+        fields = ['order_id', 'user', 'timestamp', 'vendor', 'vendor_name', 'location', 'total_amount', 'status', 'assigned_drone', 'image_url']
+        read_only_fields = ['order_id', 'vendor_name', 'status']
         
 class UserOrderSerializer(serializers.ModelSerializer):
     past_orders = serializers.SerializerMethodField()

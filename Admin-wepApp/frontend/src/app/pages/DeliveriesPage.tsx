@@ -58,7 +58,7 @@ const normalizeStatus = (status: string): string => {
 
 const mapApiOrder = (order: any): Order => ({
   order_id: String(order.order_id ?? ""),
-  vendor: String(order.vendor ?? ""),
+  vendor: order.vendor_name ?? String(order.vendor ?? ""),
   location: order.location ?? "",
   status: normalizeStatus(order.status),
   assigned_drone: order.assigned_drone ?? "Unassigned",
