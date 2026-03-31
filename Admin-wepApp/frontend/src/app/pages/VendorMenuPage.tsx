@@ -11,6 +11,7 @@ import {
 } from "../components/ui/dialog";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { Switch } from "../components/ui/switch";
 import {
   getVendorsAPI,
   getVendorMenuAPI,
@@ -59,6 +60,7 @@ export function VendorMenuPage() {
     description: "",
     imageUrl: "",
   });
+  const [editAvailable, setEditAvailable] = useState(true);
   const [formError, setFormError] = useState("");
 
   useEffect(() => {
@@ -127,6 +129,7 @@ export function VendorMenuPage() {
         price: parseFloat(formData.price),
         description: formData.description,
         image_url: formData.imageUrl || null,
+        status: editAvailable ? "Active" : "Inactive",
       });
       setFormData({ name: "", price: "", description: "", imageUrl: "" });
       setEditingItem(null);
@@ -242,6 +245,7 @@ export function VendorMenuPage() {
                               description: item.description,
                               imageUrl: item.imageUrl,
                             });
+                            setEditAvailable(item.available);
                             setFormError("");
                             setShowEditDialog(true);
                           }}
@@ -344,6 +348,10 @@ export function VendorMenuPage() {
             <div className="space-y-2">
               <Label htmlFor="edit-item-image-url">Image URL (optional)</Label>
               <Input id="edit-item-image-url" placeholder="https://..." value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} />
+            </div>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="edit-item-status">Available</Label>
+              <Switch id="edit-item-status" checked={editAvailable} onCheckedChange={setEditAvailable} />
             </div>
             {formError && <p className="text-sm text-red-600">{formError}</p>}
             <Button onClick={handleEditItem} className="w-full bg-[#8A1538] hover:bg-[#6d1029] text-white">

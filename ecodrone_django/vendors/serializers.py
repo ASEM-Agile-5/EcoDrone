@@ -34,7 +34,7 @@ class MenuSerializer(serializers.ModelSerializer):
 class MenuUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Menu
-        fields = ['name', 'price', 'description', 'image_url']
+        fields = ['name', 'price', 'description', 'image_url', 'status']
 
 
 class MenuDeleteSerializer(serializers.ModelSerializer):
