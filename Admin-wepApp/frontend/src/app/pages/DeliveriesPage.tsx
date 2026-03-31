@@ -18,13 +18,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import React from "react";
-import { getOrdersAPI, getDronesAPI, updateOrderDeliveryAPI } from "../services/services";
-
-interface DeliveryItem {
-  name: string;
-  quantity: number;
-  price: number;
-}
+import { getOrderDetailsAPI, getOrdersAPI, getDronesAPI, updateOrderDeliveryAPI } from "../services/services";
 
 interface Order {
   order_id: string;
@@ -34,11 +28,9 @@ interface Order {
   assigned_drone: string;
   timestamp: string;
   totalAmount: number;
-  deliveryFee: number;
-  items: DeliveryItem[];
   customerName: string;
-  customerPhone: string;
-  specialInstructions: string;
+  customerEmail: string;
+  imageUrl: string;
 }
 
 const normalizeStatus = (status: string): string => {
@@ -64,11 +56,9 @@ const mapApiOrder = (order: any): Order => ({
   assigned_drone: order.assigned_drone ?? "Unassigned",
   timestamp: order.timestamp ? new Date(order.timestamp).toLocaleString() : "-",
   totalAmount: Number(order.total_amount ?? 0),
-  deliveryFee: Number(order.delivery_fee ?? 0),
-  items: Array.isArray(order.items) ? order.items : [],
   customerName: order.customer_name ?? "-",
-  customerPhone: order.customer_phone ?? "-",
-  specialInstructions: order.special_instructions ?? "",
+  customerEmail: order.customer_email ?? "-",
+  imageUrl: order.image_url ?? "",
 });
 
 export function DeliveriesPage() {
@@ -83,6 +73,8 @@ export function DeliveriesPage() {
   const [projectsLoading, setProjectsLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [viewLoading, setViewLoading] = useState(false);
+  const [viewError, setViewError] = useState("");
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -192,12 +184,31 @@ export function DeliveriesPage() {
     setSaveError("");
   };
 
-  const handleView = (delivery: Order) => {
+  const handleView = async (delivery: Order) => {
     setViewingOrder(delivery);
+    setViewLoading(true);
+    setViewError("");
+
+    try {
+      const data = await getOrderDetailsAPI(delivery.order_id);
+      if (data?.status === 401) {
+        setViewError("You are not authorized to view this order.");
+        return;
+      }
+
+      setViewingOrder(mapApiOrder(data));
+    } catch (error) {
+      console.error("Failed to fetch order details:", error);
+      setViewError("Failed to load order details. Please try again.");
+    } finally {
+      setViewLoading(false);
+    }
   };
 
   const handleCloseView = () => {
     setViewingOrder(null);
+    setViewError("");
+    setViewLoading(false);
   };
 
   return (
@@ -398,6 +409,11 @@ export function DeliveriesPage() {
                 <X className="w-4 h-4" />
               </Button>
             </div>
+            {viewLoading ? (
+              <div className="py-8 text-center text-sm text-gray-500">Loading order details...</div>
+            ) : viewError ? (
+              <div className="py-8 text-center text-sm text-red-600">{viewError}</div>
+            ) : (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -443,8 +459,8 @@ export function DeliveriesPage() {
                   {viewingOrder.customerName}
                 </p>
                 <p className="text-sm">
-                  <span className="text-gray-500">Phone:</span>{" "}
-                  {viewingOrder.customerPhone}
+                  <span className="text-gray-500">Email:</span>{" "}
+                  {viewingOrder.customerEmail}
                 </p>
               </div>
 
@@ -466,69 +482,36 @@ export function DeliveriesPage() {
               </div>
 
               <div className="border-t pt-3">
-                <h3
-                  className="text-sm font-semibold mb-2"
-                  style={{ color: "#8A1538" }}
-                >
-                  Order Items
-                </h3>
-                <div className="bg-gray-50 rounded-lg p-3 space-y-2">
-                  {viewingOrder.items.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex justify-between items-center"
-                    >
-                      <span className="text-sm">
-                        {item.name} x{item.quantity}
-                      </span>
-                      <span className="text-sm font-mono">
-                        ₵{(item.price * item.quantity).toFixed(2)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="border-t pt-3">
                 <div className="space-y-1">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Subtotal:</span>
+                    <span className="text-sm text-gray-600">Order Total:</span>
                     <span className="text-sm font-mono">
                       ₵{viewingOrder.totalAmount.toFixed(2)}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Delivery Fee:</span>
-                    <span className="text-sm font-mono">
-                      ₵{viewingOrder.deliveryFee.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-t pt-1">
-                    <span className="text-sm font-semibold">Total:</span>
-                    <span className="text-sm font-mono font-semibold">
-                      ₵
-                      {(
-                        viewingOrder.totalAmount + viewingOrder.deliveryFee
-                      ).toFixed(2)}
-                    </span>
-                  </div>
                 </div>
               </div>
 
-              {viewingOrder.specialInstructions && (
+              {viewingOrder.imageUrl && (
                 <div className="border-t pt-3">
                   <h3
                     className="text-sm font-semibold mb-2"
                     style={{ color: "#8A1538" }}
                   >
-                    Special Instructions
+                    Order Image
                   </h3>
-                  <p className="text-sm bg-amber-50 p-3 rounded-lg border border-amber-200">
-                    {viewingOrder.specialInstructions}
-                  </p>
+                  <a
+                    href={viewingOrder.imageUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-[#8A1538] underline break-all"
+                  >
+                    {viewingOrder.imageUrl}
+                  </a>
                 </div>
               )}
             </div>
+            )}
           </div>
         </div>
       )}

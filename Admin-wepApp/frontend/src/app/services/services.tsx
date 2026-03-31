@@ -199,6 +199,21 @@ export const getOrdersAPI = async () => {
   }
 };
 
+export const getOrderDetailsAPI = async (orderId: string) => {
+  try {
+    const response = await api.get("order/details", {
+      params: { order_id: orderId },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(error);
+    if (error.response?.status === 401) {
+      return { status: 401, message: "Unauthorized - Invalid credentials" };
+    }
+    throw error;
+  }
+};
+
 export const updateOrderDeliveryAPI = async (order: {
   order_id: string;
   status?: string;

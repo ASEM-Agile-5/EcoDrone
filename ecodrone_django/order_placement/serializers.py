@@ -5,11 +5,26 @@ from .models import Order
 
 class OrderSerializer(serializers.ModelSerializer):
     vendor_name = serializers.CharField(source='vendor.name', read_only=True)
+    customer_name = serializers.SerializerMethodField()
+    customer_email = serializers.SerializerMethodField()
+
+    def get_customer_name(self, obj):
+        accounts = getattr(obj.user, 'accounts', None)
+        if not accounts:
+            return obj.user.email
+
+        first_name = accounts.first_name or ""
+        last_name = accounts.last_name or ""
+        full_name = f"{first_name} {last_name}".strip()
+        return full_name or obj.user.email
+
+    def get_customer_email(self, obj):
+        return obj.user.email
 
     class Meta:
         model = Order
-        fields = ['order_id', 'user', 'timestamp', 'vendor', 'vendor_name', 'location', 'total_amount', 'status', 'assigned_drone', 'image_url']
-        read_only_fields = ['order_id', 'vendor_name', 'status']
+        fields = ['order_id', 'user', 'timestamp', 'vendor', 'vendor_name', 'customer_name', 'customer_email', 'location', 'total_amount', 'status', 'assigned_drone', 'image_url']
+        read_only_fields = ['order_id', 'vendor_name', 'customer_name', 'customer_email', 'status']
         
 class UserOrderSerializer(serializers.ModelSerializer):
     past_orders = serializers.SerializerMethodField()
