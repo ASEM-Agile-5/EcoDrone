@@ -129,9 +129,9 @@ export function OverviewPage() {
             <Radio className="w-6 h-6 text-[#8A1538] mb-2" />
             <div className="text-sm">Drone Status</div>
           </button>
-          <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#8A1538] hover:bg-gray-50 transition-colors text-left" onClick={() => navigate('/dashboard/reports')}>
+          <button className="p-4 border-2 border-gray-200 rounded-lg hover:border-[#8A1538] hover:bg-gray-50 transition-colors text-left" onClick={() => navigate('/dashboard/environmental')}>
             <PackageCheck className="w-6 h-6 text-[#8A1538] mb-2" />
-            <div className="text-sm">Generate Report</div>
+            <div className="text-sm">Environmental Status</div>
           </button>
         </div>
       </div>
