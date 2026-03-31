@@ -5,10 +5,9 @@ from rest_framework import status
 import jwt
 from django.conf import settings
 from .models import Vendor, Order
-from .serializers import OrderSerializer, OrderStatusSerializer
+from .serializers import OrderSerializer, OrderStatusSerializer, OrderRequestSerializer, UserOrderSerializer
 from django.contrib.auth import get_user_model
 from . import order_status
-
 # import requests
 import uuid
 
@@ -67,6 +66,29 @@ class OrderView(APIView):
         except jwt.InvalidTokenError:
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 
+class OrderByUserView(APIView):
+
+    def get(self, request):
+        token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
+
+        if not token:
+            return Response({"error": "Token not found"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            # Verify token
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            user_id = payload['user_id']
+            if not user_id:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            orders = Order.objects.filter(user_id=user_id)
+            serializer = UserOrderSerializer(orders, many=False)
+            
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 class MenuByVendorView(APIView):
     def get(self, request):
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
