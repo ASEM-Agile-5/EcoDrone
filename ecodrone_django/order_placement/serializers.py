@@ -36,3 +36,10 @@ class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['order_id', 'status']
+
+
+class OrderDeliveryUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['order_id', 'status', 'assigned_drone']
+        read_only_fields = ['order_id']

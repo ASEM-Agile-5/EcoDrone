@@ -199,6 +199,23 @@ export const getOrdersAPI = async () => {
   }
 };
 
+export const updateOrderDeliveryAPI = async (order: {
+  order_id: string;
+  status?: string;
+  assigned_drone?: string | null;
+}) => {
+  try {
+    const response = await api.post("order/set-status", order);
+    return response.data;
+  } catch (error: any) {
+    console.error(error);
+    if (error.response?.status === 401) {
+      return { status: 401, message: "Unauthorized - Invalid credentials" };
+    }
+    throw error;
+  }
+};
+
 export const getProjectsDetailsAPI = async (id: string) => {
   const token = localStorage.getItem("token");
   if (!token) {

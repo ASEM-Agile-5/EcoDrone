@@ -18,8 +18,58 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import React from "react";
-import { getOrdersAPI, getDronesAPI } from "../services/services";
-import { Order } from "../models/order";
+import { getOrdersAPI, getDronesAPI, updateOrderDeliveryAPI } from "../services/services";
+
+interface DeliveryItem {
+  name: string;
+  quantity: number;
+  price: number;
+}
+
+interface Order {
+  order_id: string;
+  vendor: string;
+  location: string;
+  status: string;
+  assigned_drone: string;
+  timestamp: string;
+  totalAmount: number;
+  deliveryFee: number;
+  items: DeliveryItem[];
+  customerName: string;
+  customerPhone: string;
+  specialInstructions: string;
+}
+
+const normalizeStatus = (status: string): string => {
+  switch (status?.toLowerCase()) {
+    case "in progress":
+      return "In Progress";
+    case "pending":
+      return "Pending";
+    case "completed":
+      return "Completed";
+    case "failed":
+      return "Failed";
+    default:
+      return status ?? "";
+  }
+};
+
+const mapApiOrder = (order: any): Order => ({
+  order_id: String(order.order_id ?? ""),
+  vendor: String(order.vendor ?? ""),
+  location: order.location ?? "",
+  status: normalizeStatus(order.status),
+  assigned_drone: order.assigned_drone ?? "Unassigned",
+  timestamp: order.timestamp ? new Date(order.timestamp).toLocaleString() : "-",
+  totalAmount: Number(order.total_amount ?? 0),
+  deliveryFee: Number(order.delivery_fee ?? 0),
+  items: Array.isArray(order.items) ? order.items : [],
+  customerName: order.customer_name ?? "-",
+  customerPhone: order.customer_phone ?? "-",
+  specialInstructions: order.special_instructions ?? "",
+});
 
 export function DeliveriesPage() {
   const [deliveries, setDeliveries] = useState<Order[]>([]);
@@ -31,24 +81,15 @@ export function DeliveriesPage() {
   const [editStatus, setEditStatus] = useState("");
   const [editDrone, setEditDrone] = useState("");
   const [projectsLoading, setProjectsLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
-    const normalizeStatus = (s: string): string => {
-      switch (s?.toLowerCase()) {
-        case "in progress": return "In Progress";
-        case "pending": return "Pending";
-        case "completed": return "Completed";
-        case "failed": return "Failed";
-        default: return s ?? "";
-      }
-    };
-
     const fetchOrders = async () => {
       try {
         setProjectsLoading(true);
         const data = await getOrdersAPI();
-        const normalized = (data || []).map((o: any) => ({ ...o, status: normalizeStatus(o.status) }));
-        setDeliveries(normalized);
+        setDeliveries((data || []).map(mapApiOrder));
       } catch (error) {
         console.error("Failed to fetch projects:", error);
         setDeliveries([]);
@@ -77,7 +118,7 @@ export function DeliveriesPage() {
       statusFilter === "all" || delivery.status === statusFilter;
     const matchesSearch =
       delivery.order_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      delivery.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      String(delivery.vendor).toLowerCase().includes(searchQuery.toLowerCase()) ||
       delivery.location.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
   });
@@ -100,26 +141,55 @@ export function DeliveriesPage() {
   const handleEdit = (delivery: Order) => {
     setEditingOrder(delivery);
     setEditStatus(delivery.status);
-    // setEditDrone(delivery.drone);
+    setEditDrone(delivery.assigned_drone === "Unassigned" ? "" : delivery.assigned_drone);
+    setSaveError("");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editingOrder) {
-      // Set drone to "None" if status is "Waiting"
-      const updatedDrone = editStatus === "Waiting" ? "None" : editDrone;
+      setSaveLoading(true);
+      setSaveError("");
+      try {
+        const response = await updateOrderDeliveryAPI({
+          order_id: editingOrder.order_id,
+          status: editStatus,
+          assigned_drone: editDrone || null,
+        });
 
-      const updatedDeliveries = deliveries.map((delivery) =>
-        delivery.order_id === editingOrder.order_id
-          ? { ...delivery, status: editStatus, drone: updatedDrone }
-          : delivery,
-      );
-      setDeliveries(updatedDeliveries);
-      setEditingOrder(null);
+        if (response?.status === 401) {
+          setSaveError("You are not authorized to update this delivery.");
+          return;
+        }
+
+        const updatedOrder = response?.data ?? {};
+        const nextStatus = normalizeStatus(updatedOrder.status ?? editStatus);
+        const nextDrone = updatedOrder.assigned_drone ?? (editDrone || "Unassigned");
+
+        setDeliveries((currentDeliveries) =>
+          currentDeliveries.map((delivery) =>
+            delivery.order_id === editingOrder.order_id
+              ? { ...delivery, status: nextStatus, assigned_drone: nextDrone }
+              : delivery,
+          ),
+        );
+        setViewingOrder((currentViewingOrder) =>
+          currentViewingOrder?.order_id === editingOrder.order_id
+            ? { ...currentViewingOrder, status: nextStatus, assigned_drone: nextDrone }
+            : currentViewingOrder,
+        );
+        setEditingOrder(null);
+      } catch (error) {
+        console.error("Failed to save delivery update:", error);
+        setSaveError("Failed to save delivery updates. Please try again.");
+      } finally {
+        setSaveLoading(false);
+      }
     }
   };
 
   const handleCancel = () => {
     setEditingOrder(null);
+    setSaveError("");
   };
 
   const handleView = (delivery: Order) => {
@@ -247,7 +317,7 @@ export function DeliveriesPage() {
                 <TableCell className="font-mono text-sm">
                   {editingOrder &&
                   editingOrder.order_id === delivery.order_id &&
-                  delivery.status !== "Completed" ? (
+                  editStatus !== "Completed" ? (
                     <Select value={editDrone} onValueChange={setEditDrone}>
                       <SelectTrigger className="w-32">
                         <SelectValue placeholder="Select drone" />
@@ -261,7 +331,7 @@ export function DeliveriesPage() {
                       </SelectContent>
                     </Select>
                   ) : (
-                    delivery.drone
+                    delivery.assigned_drone || "Unassigned"
                   )}
                 </TableCell>
                 <TableCell className="text-sm text-gray-600">
@@ -274,12 +344,14 @@ export function DeliveriesPage() {
                       <Button
                         className="bg-green-500 hover:bg-green-600 text-white"
                         onClick={handleSave}
+                        disabled={saveLoading}
                       >
-                        Save
+                        {saveLoading ? "Saving..." : "Save"}
                       </Button>
                       <Button
                         className="bg-gray-500 hover:bg-gray-600 text-white"
                         onClick={handleCancel}
+                        disabled={saveLoading}
                       >
                         Cancel
                       </Button>
@@ -307,6 +379,7 @@ export function DeliveriesPage() {
             ))}
           </TableBody>
         </Table>
+        {saveError && <div className="px-6 pb-6 text-sm text-red-600">{saveError}</div>}
       </div>
 
       {/* View Order Modal */}
@@ -384,7 +457,7 @@ export function DeliveriesPage() {
                 </h3>
                 <p className="text-sm">
                   <span className="text-gray-500">Assigned Drone:</span>{" "}
-                  {viewingOrder.drone}
+                  {viewingOrder.assigned_drone || "Unassigned"}
                 </p>
                 <p className="text-sm">
                   <span className="text-gray-500">Timestamp:</span>{" "}
