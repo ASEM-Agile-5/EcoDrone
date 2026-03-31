@@ -4,6 +4,7 @@ from rest_framework import status
 import jwt
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.db.models import Count
 from .models import Vendor, Category, Menu
 from .serializers import CategorySerializer, MenuSerializer, VendorSerializer, VendorStatusSerializer, MenuUpdateSerializer, MenuDeleteSerializer, RegisterVendorSerializer
 from order_placement.models import Order
@@ -52,13 +53,19 @@ class VendorListView(APIView):
             user_id = payload['user_id']
             user = User.objects.get(id=user_id)
             if not user.is_superuser:
-                vendors = Vendor.objects.filter(status='Active')
+                vendors = Vendor.objects.filter(status='Active').annotate(
+                    calculated_menu_count=Count('menu', distinct=True),
+                    calculated_order_count=Count('order', distinct=True),
+                )
                 serializer = VendorSerializer(vendors, many=True)
                 return Response({
                     "vendors": serializer.data
                 }, status=status.HTTP_200_OK)
             else:
-                vendors = Vendor.objects.all()
+                vendors = Vendor.objects.all().annotate(
+                    calculated_menu_count=Count('menu', distinct=True),
+                    calculated_order_count=Count('order', distinct=True),
+                )
                 serializer = VendorSerializer(vendors, many=True)
                 return Response({
                     "vendors": serializer.data
@@ -137,7 +144,7 @@ class MenuDetailView(APIView):
             if not user.is_superuser:
                 return Response({"error": "Only superusers can register vendors"}, status=status.HTTP_403_FORBIDDEN)
 
-            menus = Menu.objects.filter(vendor_id=vendor_id)
+            menus = Menu.objects.filter(vendor_id=vendor_id).select_related('category')
             serializer = MenuSerializer(menus, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except jwt.ExpiredSignatureError:
@@ -163,8 +170,9 @@ class MenuUpdateView(APIView):
             if not user.is_superuser:
                 return Response({"error": "Only superusers can register vendors"}, status=status.HTTP_403_FORBIDDEN)
 
-            menus = Menu.objects.get(id=vendor_id)
-            if not menus:
+            try:
+                menus = Menu.objects.get(id=vendor_id)
+            except Menu.DoesNotExist:
                 return Response({"error": "Menu item not found"}, status=status.HTTP_404_NOT_FOUND)
              
             serializer = MenuUpdateSerializer(menus, data=request.data, partial=True)
@@ -214,13 +222,16 @@ class MenuUpdateView(APIView):
            
 class CategoryListView(APIView):
     def get(self, request):
+        User = get_user_model()
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
 
         if not token:
             return Response({"error": "Token not found"}, status=status.HTTP_401_UNAUTHORIZED)
             
         try:
-            user = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            user_id = payload['user_id']
+            user = User.objects.get(id=user_id)
             if not user.is_superuser:
                 return Response({"error": "Only superusers can register vendors"}, status=status.HTTP_403_FORBIDDEN)
             
@@ -263,7 +274,7 @@ class OrderByVendorView(APIView):
             if not vendor_id:
                 return Response({"error": "vendor_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-            orders = Order.objects.filter(vendor__id=vendor_id)
+            orders = Order.objects.select_related('vendor', 'user', 'user__accounts').prefetch_related('items').filter(vendor__id=vendor_id)
 
             serializer = OrderSerializer(orders, many=True)
             if not serializer.data:
@@ -275,6 +286,41 @@ class OrderByVendorView(APIView):
 
         except jwt.InvalidTokenError:
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class VendorUpdateView(APIView):
+    def put(self, request, pk):
+        User = get_user_model()
+        token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
+
+        if not token:
+            return Response({"error": "Token not found"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            user_id = payload['user_id']
+            user = User.objects.get(id=user_id)
+
+            if not user.is_superuser:
+                return Response({"error": "Only superusers can update vendors"}, status=status.HTTP_403_FORBIDDEN)
+
+            try:
+                vendor = Vendor.objects.get(id=pk)
+            except Vendor.DoesNotExist:
+                return Response({"error": "Vendor not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            serializer = VendorSerializer(vendor, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class SetVendorStatusView(APIView):

@@ -5,16 +5,31 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Radio } from "lucide-react";
 import React from "react";
+import { loginAPI } from "../services/services";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Mock login - in real app would validate credentials
-    navigate("/dashboard");
+    setError("");
+    setIsLoading(true);
+    try {
+      const response = await loginAPI(email, password);
+      if (response?.status === 200) {
+        navigate("/dashboard");
+      } else {
+        setError("Invalid email or password.");
+      }
+    } catch {
+      setError("Invalid email or password.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -68,11 +83,16 @@ export function LoginPage() {
               />
             </div>
 
+            {error && (
+              <p className="text-sm text-red-600 text-center">{error}</p>
+            )}
+
             <Button
               type="submit"
+              disabled={isLoading}
               className="w-full h-11 bg-[#8A1538] hover:bg-[#6d1029] text-white"
             >
-              Login to Dashboard
+              {isLoading ? "Logging in..." : "Login to Dashboard"}
             </Button>
           </form>
 

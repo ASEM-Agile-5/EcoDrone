@@ -31,8 +31,10 @@ class LoginView(views.APIView):
             
             serializer = LoginSerializer(data=request.data)
         
-            if serializer.is_valid():
-                user = serializer.validated_data['user']
+            if not serializer.is_valid():
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            user = serializer.validated_data['user']
 
             # 1. Use timezone-aware datetimes (utcnow is deprecated)
             now = datetime.datetime.now(datetime.timezone.utc)
@@ -57,7 +59,7 @@ class LoginView(views.APIView):
                 key='access_token',
                 value=token,
                 httponly=True,   # Security: Prevents JS access
-                secure = settings.DEBUG,     # Security: Only over HTTPS
+                secure = not settings.DEBUG,     # Security: Only over HTTPS
                 samesite='None',  # Security: CSRF protection
                 max_age=60  * settings.JWT_EXPIRY_MINUTES,   # 1 hour
                 path='/'        # Cookie is valid for the entire domain

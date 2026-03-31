@@ -156,3 +156,14 @@ npm-debug.log
 Admin-wepApp/frontend/build/
 Admin-wepApp/frontend/.env.local
 Admin-wepApp/frontend/.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/

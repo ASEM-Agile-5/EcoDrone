@@ -5,7 +5,6 @@ import {
   LayoutDashboard,
   Package,
   Store,
-  FileText,
   Leaf,
   Settings,
   LogOut,
@@ -27,7 +26,6 @@ const navigation = [
   { name: "Deliveries", href: "/dashboard/deliveries", icon: Package },
   { name: "Drones", href: "/dashboard/drones", icon: Radio },
   { name: "Vendors", href: "/dashboard/vendors", icon: Store },
-  { name: "Reports", href: "/dashboard/reports", icon: FileText },
   {
     name: "Environmental Monitoring",
     href: "/dashboard/environmental",
@@ -40,14 +38,17 @@ export function DashboardLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const { user, loading, refetchUser, setLoading } = useUser();
+  const { user, loading, refetchUser } = useUser();
 
   useEffect(() => {
     refetchUser();
+  }, []);
+
+  useEffect(() => {
     if (!loading && !user) {
       navigate("/");
     }
-  }, []);
+  }, [loading, user]);
 
   return (
     <div

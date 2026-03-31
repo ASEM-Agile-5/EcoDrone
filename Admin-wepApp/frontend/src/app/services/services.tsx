@@ -7,6 +7,24 @@ const api = axios.create({
   withCredentials: true,
 });
 
+export const getDashboardStatsAPI = async () => {
+  try {
+    const response = await api.get("dashboard/stats");
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getVendorOrdersAPI = async (vendorId: string) => {
+  try {
+    const response = await api.post("vendors/orders", { vendor_id: vendorId });
+    return response.data;
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const getUserInfoAPI = async () => {
   try {
     const response = await api.get("user/get-user");
@@ -21,13 +39,18 @@ export const addDroneAPI = async (
   name: string,
   model: string,
   maxPayload: string,
+  droneStatus?: string,
+  batteryLevel?: string,
+  currentLocation?: string,
 ) => {
-  console.log(name, model, maxPayload);
   try {
     const response = await api.post("drones/register", {
-      name: name,
-      model: model,
-      maxPayload: maxPayload,
+      name,
+      model,
+      max_payload: maxPayload,
+      status: droneStatus,
+      battery_level: batteryLevel,
+      current_location: currentLocation,
     });
 
     return response;
@@ -45,13 +68,18 @@ export const editDroneAPI = async (
   name: string,
   model: string,
   maxPayload: string,
+  droneStatus: string,
+  batteryLevel: string,
+  currentLocation: string,
 ) => {
-  console.log(name, model, maxPayload);
   try {
     const response = await api.put(`drones/update/${id}`, {
-      name: name,
-      model: model,
-      maxPayload: maxPayload,
+      name,
+      model,
+      max_payload: maxPayload,
+      status: droneStatus,
+      battery_level: batteryLevel,
+      current_location: currentLocation,
     });
 
     return response;
@@ -113,9 +141,19 @@ export const getVendorMenuAPI = async (id: string) => {
     console.log(error);
   }
 };
+
+export const deleteVendorMenuAPI = async (id: string) => {
+  try {
+    const response = await api.delete(`vendors/menu/delete/${id}`);
+    return response.data;
+  } catch (error: any) {
+    console.error(error);
+    throw error;
+  }
+};
 export const editVendorMenuAPI = async (id: string, menu: MenuItem) => {
   try {
-    const response = await api.put(`vendors/menu/${id}`, menu);
+    const response = await api.put(`vendors/menu/update/${id}`, menu);
     return response.data;
   } catch (error: any) {
     console.error(error);
@@ -127,7 +165,7 @@ export const editVendorMenuAPI = async (id: string, menu: MenuItem) => {
 };
 export const addVendorMenuAPI = async (menu: MenuItem) => {
   try {
-    const response = await api.post("vendors/menu/create/", menu);
+    const response = await api.post("vendors/menu/create", menu);
     return response.data;
   } catch (error: any) {
     console.error(error);
@@ -158,6 +196,38 @@ export const getOrdersAPI = async () => {
     return response.data;
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const getOrderDetailsAPI = async (orderId: string) => {
+  try {
+    const response = await api.get("order/details", {
+      params: { order_id: orderId },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error(error);
+    if (error.response?.status === 401) {
+      return { status: 401, message: "Unauthorized - Invalid credentials" };
+    }
+    throw error;
+  }
+};
+
+export const updateOrderDeliveryAPI = async (order: {
+  order_id: string;
+  status?: string;
+  assigned_drone?: string | null;
+}) => {
+  try {
+    const response = await api.post("order/set-status", order);
+    return response.data;
+  } catch (error: any) {
+    console.error(error);
+    if (error.response?.status === 401) {
+      return { status: 401, message: "Unauthorized - Invalid credentials" };
+    }
+    throw error;
   }
 };
 

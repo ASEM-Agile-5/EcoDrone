@@ -4,7 +4,8 @@ from .models import Drone
 class DroneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Drone
-        fields = ['id', 'name', 'registered_by', 'status', 'battery_level', 'current_location', 'last_flight']
+        fields = ['id', 'name', 'model', 'max_payload', 'registered_by', 'status', 'battery_level', 'current_location', 'last_flight']
+        read_only_fields = ['id', 'registered_by']
 
 class DroneStatusSerializer(serializers.ModelSerializer):
     class Meta:
@@ -19,7 +20,7 @@ class DroneStatusSerializer(serializers.ModelSerializer):
 class DroneUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Drone
-        fields = ['name', 'battery_level', 'current_location', 'last_flight']
+        fields = ['name', 'model', 'max_payload', 'status', 'battery_level', 'current_location']
         
 class DroneDeleteSerializer(serializers.ModelSerializer):
     class Meta:

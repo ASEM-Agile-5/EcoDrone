@@ -23,40 +23,80 @@ export function DronesPage() {
   const [name, setName] = useState("");
   const [model, setModel] = useState("");
   const [maxPayload, setMaxPayload] = useState("");
+  const [droneStatus, setDroneStatus] = useState("Idle");
+  const [batteryLevel, setBatteryLevel] = useState("");
+  const [currentLocation, setCurrentLocation] = useState("");
   const [editingDrone, setEditingDrone] = useState<Drone | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Drone>>({});
+  const [editName, setEditName] = useState("");
+  const [editModel, setEditModel] = useState("");
+  const [editMaxPayload, setEditMaxPayload] = useState("");
+  const [editDroneStatus, setEditDroneStatus] = useState("Idle");
+  const [editBatteryLevel, setEditBatteryLevel] = useState("");
+  const [editCurrentLocation, setEditCurrentLocation] = useState("");
+  const [editError, setEditError] = useState("");
   const [drones, setDrones] = useState<Drone[]>([]);
+  const [addError, setAddError] = useState("");
+
+  const mapApiDrone = (d: any): Drone => ({
+    id: String(d.id),
+    name: d.name,
+    model: d.model ?? "—",
+    maxPayload: d.max_payload ?? "—",
+    status: d.status ?? "Idle",
+    battery: parseInt(d.battery_level) || 0,
+    location: d.current_location ?? "—",
+    lastFlight: d.last_flight ? new Date(d.last_flight).toLocaleString() : "—",
+    totalFlights: d.total_flights ?? 0,
+  });
+
+  const fetchDrones = async () => {
+    try {
+      const data = await getDronesAPI();
+      if (data?.drones) setDrones(data.drones.map(mapApiDrone));
+    } catch (error) {
+      console.error("Error fetching drones:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchDrones = async () => {
-      try {
-        const data = await getDronesAPI();
-        setDrones(data.drones);
-      } catch (error) {
-        console.error("Error fetching drones:", error);
-      }
-    };
     fetchDrones();
   }, []);
 
   const handleEditDrone = async (id: string) => {
+    if (!editName.trim()) {
+      setEditError("Drone name is required.");
+      return;
+    }
+    setEditError("");
     try {
-      const response = await editDroneAPI(id, name, model, maxPayload);
-      if (response.status === 200) {
-        setEditingDrone(null);
-      }
+      await editDroneAPI(id, editName, editModel, editMaxPayload, editDroneStatus, editBatteryLevel, editCurrentLocation);
+      setEditingDrone(null);
+      await fetchDrones();
     } catch (error) {
-      console.error("Error adding drone:", error);
+      console.error("Error editing drone:", error);
+      setEditError("Failed to update drone. Please try again.");
     }
   };
   const handleAddDrone = async () => {
+    if (!name.trim()) {
+      setAddError("Drone name is required.");
+      return;
+    }
+    setAddError("");
     try {
-      const response = await addDroneAPI(name, model, maxPayload);
-      if (response.status === 201) {
-        setShowAddModal(false);
-      }
+      await addDroneAPI(name, model, maxPayload, droneStatus, batteryLevel, currentLocation);
+      setName("");
+      setModel("");
+      setMaxPayload("");
+      setDroneStatus("Idle");
+      setBatteryLevel("");
+      setCurrentLocation("");
+      setShowAddModal(false);
+      await fetchDrones();
     } catch (error) {
       console.error("Error adding drone:", error);
+      setAddError("Failed to add drone. Please try again.");
     }
   };
 
@@ -209,6 +249,13 @@ export function DronesPage() {
                   onClick={() => {
                     setEditingDrone(drone);
                     setEditFormData(drone);
+                    setEditName(drone.name);
+                    setEditModel(drone.model);
+                    setEditMaxPayload(drone.maxPayload);
+                    setEditDroneStatus(drone.status);
+                    setEditBatteryLevel(String(drone.battery));
+                    setEditCurrentLocation(drone.location);
+                    setEditError("");
                   }}
                   title="Edit drone"
                 >
@@ -366,10 +413,52 @@ export function DronesPage() {
                   onChange={(e) => setMaxPayload(e.target.value)}
                 />
               </div>
+              <div>
+                <label className="block text-sm mb-1 text-gray-700">
+                  Status
+                </label>
+                <select
+                  value={droneStatus}
+                  onChange={(e) => setDroneStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
+                >
+                  <option value="Idle">Idle</option>
+                  <option value="Active">Active</option>
+                  <option value="Charging">Charging</option>
+                  <option value="Maintenance">Maintenance</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-gray-700">
+                  Battery Level (%)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
+                  placeholder="e.g., 85"
+                  value={batteryLevel}
+                  onChange={(e) => setBatteryLevel(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-gray-700">
+                  Current Location
+                </label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
+                  placeholder="e.g., Base Station"
+                  value={currentLocation}
+                  onChange={(e) => setCurrentLocation(e.target.value)}
+                />
+              </div>
             </div>
+            {addError && <p className="text-sm text-red-600 mt-2">{addError}</p>}
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => { setShowAddModal(false); setAddError(""); }}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
@@ -385,33 +474,29 @@ export function DronesPage() {
         </div>
       )}
 
-      {/* Edit Drone Modal (Simple placeholder) */}
+      {/* Edit Drone Modal */}
       {editingDrone && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl mb-4" style={{ color: "#8A1538" }}>
               Edit Drone
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm mb-1 text-gray-700">
-                  Drone Name
-                </label>
+                <label className="block text-sm mb-1 text-gray-700">Drone Name</label>
                 <input
                   type="text"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
                   placeholder="e.g., EcoDrone Theta"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
                 />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-700">
-                  Model
-                </label>
+                <label className="block text-sm mb-1 text-gray-700">Model</label>
                 <select
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
+                  value={editModel}
+                  onChange={(e) => setEditModel(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
                 >
                   <option value="">Select a model</option>
@@ -421,27 +506,61 @@ export function DronesPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-700">
-                  Max Payload
-                </label>
+                <label className="block text-sm mb-1 text-gray-700">Max Payload</label>
                 <input
                   type="text"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
                   placeholder="e.g., 2.5kg"
-                  value={maxPayload}
-                  onChange={(e) => setMaxPayload(e.target.value)}
+                  value={editMaxPayload}
+                  onChange={(e) => setEditMaxPayload(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-gray-700">Status</label>
+                <select
+                  value={editDroneStatus}
+                  onChange={(e) => setEditDroneStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
+                >
+                  <option value="Idle">Idle</option>
+                  <option value="Active">Active</option>
+                  <option value="Charging">Charging</option>
+                  <option value="Maintenance">Maintenance</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-gray-700">Battery Level (%)</label>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
+                  placeholder="e.g., 85"
+                  value={editBatteryLevel}
+                  onChange={(e) => setEditBatteryLevel(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="block text-sm mb-1 text-gray-700">Current Location</label>
+                <input
+                  type="text"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538]"
+                  placeholder="e.g., Base Station"
+                  value={editCurrentLocation}
+                  onChange={(e) => setEditCurrentLocation(e.target.value)}
                 />
               </div>
             </div>
+            {editError && <p className="text-sm text-red-600 mt-2">{editError}</p>}
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => setEditingDrone(null)}
+                onClick={() => { setEditingDrone(null); setEditError(""); }}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={() => handleEditDrone(editingDrone?.id)}
+                onClick={() => handleEditDrone(editingDrone.id)}
                 className="flex-1 px-4 py-2 bg-[#8A1538] text-white rounded-lg hover:bg-[#751130] transition-colors"
               >
                 Save Changes
