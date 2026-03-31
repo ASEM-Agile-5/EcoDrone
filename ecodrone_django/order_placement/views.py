@@ -4,13 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 import jwt
 from django.conf import settings
-<<<<<<< HEAD
 from .models import Vendor, Order, Location
-from .serializers import OrderSerializer, OrderStatusSerializer, OrderRequestSerializer, UserOrderSerializer, LocationSerializer
-=======
-from .models import Vendor, Order
-from .serializers import OrderSerializer, OrderStatusSerializer, OrderRequestSerializer, UserOrderSerializer, OrderDeliveryUpdateSerializer
->>>>>>> refs/remotes/origin/dev
+from .serializers import OrderSerializer, OrderStatusSerializer, OrderRequestSerializer, UserOrderSerializer, LocationSerializer, OrderDeliveryUpdateSerializer
 from django.contrib.auth import get_user_model
 from . import order_status
 # import requests
