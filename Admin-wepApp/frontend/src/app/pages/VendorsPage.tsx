@@ -65,6 +65,7 @@ export function VendorsPage() {
   const [newOwnerContact, setNewOwnerContact] = useState("");
   const [newVendorActive, setNewVendorActive] = useState(true);
   const [addError, setAddError] = useState("");
+  const [addLoading, setAddLoading] = useState(false);
 
   const [editingVendor, setEditingVendor] = useState<DisplayVendor | null>(null);
   const [editVendorName, setEditVendorName] = useState("");
@@ -96,6 +97,7 @@ export function VendorsPage() {
       return;
     }
     setAddError("");
+    setAddLoading(true);
     try {
       const response = await addVendorAPI({
         name: newVendorName,
@@ -115,6 +117,8 @@ export function VendorsPage() {
       }
     } catch {
       setAddError("Failed to add vendor. Please try again.");
+    } finally {
+      setAddLoading(false);
     }
   };
 
@@ -194,8 +198,8 @@ export function VendorsPage() {
                 <Switch id="vendor-status" checked={newVendorActive} onCheckedChange={setNewVendorActive} />
               </div>
               {addError && <p className="text-sm text-red-600">{addError}</p>}
-              <Button onClick={handleAddVendor} className="w-full bg-[#8A1538] hover:bg-[#6d1029] text-white">
-                Add Vendor
+              <Button onClick={handleAddVendor} disabled={addLoading} className="w-full bg-[#8A1538] hover:bg-[#6d1029] text-white">
+                {addLoading ? "Adding..." : "Add Vendor"}
               </Button>
             </div>
           </DialogContent>
