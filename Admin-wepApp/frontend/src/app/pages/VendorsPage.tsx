@@ -276,7 +276,7 @@ export function VendorsPage() {
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Menu Sync</span>
                   <span className={`px-3 py-1 rounded-full text-xs ${vendor.menuSynced ? "bg-blue-100 text-blue-700" : "bg-amber-100 text-amber-700"}`}>
-                    {vendor.menuSynced ? "Synced" : "Not Synced"}
+                    Synced
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
