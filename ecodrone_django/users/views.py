@@ -57,7 +57,7 @@ class LoginView(views.APIView):
                 key='access_token',
                 value=token,
                 httponly=True,   # Security: Prevents JS access
-                secure = settings.DEBUG,     # Security: Only over HTTPS
+                secure = not settings.DEBUG,     # Security: Only over HTTPS
                 samesite='None',  # Security: CSRF protection
                 max_age=60  * settings.JWT_EXPIRY_MINUTES,   # 1 hour
                 path='/'        # Cookie is valid for the entire domain
