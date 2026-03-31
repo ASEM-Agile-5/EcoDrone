@@ -71,7 +71,8 @@ class VendorListView(APIView):
             user = User.objects.get(id=user_id)
             if not user.is_superuser:
                 vendors = Vendor.objects.filter(status='Active').annotate(
-                    calculated_menu_count=Count('menu')
+                    calculated_menu_count=Count('menu', distinct=True),
+                    calculated_order_count=Count('order', distinct=True),
                 )
                 serializer = VendorSerializer(vendors, many=True)
                 return Response({
@@ -79,7 +80,8 @@ class VendorListView(APIView):
                 }, status=status.HTTP_200_OK)
             else:
                 vendors = Vendor.objects.all().annotate(
-                    calculated_menu_count=Count('menu')
+                    calculated_menu_count=Count('menu', distinct=True),
+                    calculated_order_count=Count('order', distinct=True),
                 )
                 serializer = VendorSerializer(vendors, many=True)
                 return Response({

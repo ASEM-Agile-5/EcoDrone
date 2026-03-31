@@ -1,13 +1,20 @@
 from rest_framework import serializers
 from .models import Vendor, Category, Menu
+from order_placement.models import Order
 
 class VendorSerializer(serializers.ModelSerializer):
     menu_count = serializers.SerializerMethodField()
+    volume_processed = serializers.SerializerMethodField()
 
     def get_menu_count(self, obj):
         if hasattr(obj, 'calculated_menu_count'):
             return obj.calculated_menu_count
         return Menu.objects.filter(vendor=obj).count()
+
+    def get_volume_processed(self, obj):
+        if hasattr(obj, 'calculated_order_count'):
+            return obj.calculated_order_count
+        return Order.objects.filter(vendor=obj).count()
 
     class Meta:
         model = Vendor
