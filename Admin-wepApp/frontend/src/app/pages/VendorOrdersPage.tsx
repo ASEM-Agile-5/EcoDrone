@@ -76,18 +76,12 @@ export function VendorOrdersPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Pending":
-      case "Waiting":
         return "bg-amber-100 text-amber-700 border-amber-200";
-      case "Preparing":
       case "In Progress":
         return "bg-blue-100 text-blue-700 border-blue-200";
-      case "Ready":
-      case "In Transit":
-        return "bg-purple-100 text-purple-700 border-purple-200";
-      case "Delivered":
       case "Completed":
         return "bg-green-100 text-green-700 border-green-200";
-      case "Cancelled":
+      case "Failed":
         return "bg-red-100 text-red-700 border-red-200";
       default:
         return "bg-gray-100 text-gray-700 border-gray-200";
@@ -100,9 +94,9 @@ export function VendorOrdersPage() {
 
   const stats = {
     total: orders.length,
-    pending: orders.filter((o) => ["Pending", "Waiting"].includes(o.status)).length,
-    preparing: orders.filter((o) => ["Preparing", "In Progress"].includes(o.status)).length,
-    delivered: orders.filter((o) => ["Delivered", "Completed"].includes(o.status)).length,
+    pending: orders.filter((o) => o.status === "Pending").length,
+    inProgress: orders.filter((o) => o.status === "In Progress").length,
+    completed: orders.filter((o) => o.status === "Completed").length,
   };
 
   return (
@@ -136,12 +130,12 @@ export function VendorOrdersPage() {
           <div className="text-2xl mt-1 text-amber-700">{stats.pending}</div>
         </div>
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-          <div className="text-sm text-blue-700">Preparing</div>
-          <div className="text-2xl mt-1 text-blue-700">{stats.preparing}</div>
+          <div className="text-sm text-blue-700">In Progress</div>
+          <div className="text-2xl mt-1 text-blue-700">{stats.inProgress}</div>
         </div>
         <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-          <div className="text-sm text-green-700">Delivered</div>
-          <div className="text-2xl mt-1 text-green-700">{stats.delivered}</div>
+          <div className="text-sm text-green-700">Completed</div>
+          <div className="text-2xl mt-1 text-green-700">{stats.completed}</div>
         </div>
       </div>
 
@@ -155,12 +149,10 @@ export function VendorOrdersPage() {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8A1538] focus:border-transparent"
           >
             <option value="All">All Status</option>
-            <option value="Waiting">Waiting</option>
-            <option value="Preparing">Preparing</option>
+            <option value="Pending">Pending</option>
             <option value="In Progress">In Progress</option>
-            <option value="In Transit">In Transit</option>
             <option value="Completed">Completed</option>
-            <option value="Cancelled">Cancelled</option>
+            <option value="Failed">Failed</option>
           </select>
         </div>
       </div>
