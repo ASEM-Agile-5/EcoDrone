@@ -26,16 +26,30 @@ export function DronesPage() {
   const [editingDrone, setEditingDrone] = useState<Drone | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Drone>>({});
   const [drones, setDrones] = useState<Drone[]>([]);
+  const [addError, setAddError] = useState("");
+
+  const mapApiDrone = (d: any): Drone => ({
+    id: String(d.id),
+    name: d.name,
+    model: d.model ?? "—",
+    maxPayload: d.max_payload ?? "—",
+    status: d.status ?? "Idle",
+    battery: parseInt(d.battery_level) || 0,
+    location: d.current_location ?? "—",
+    lastFlight: d.last_flight ? new Date(d.last_flight).toLocaleString() : "—",
+    totalFlights: d.total_flights ?? 0,
+  });
+
+  const fetchDrones = async () => {
+    try {
+      const data = await getDronesAPI();
+      if (data?.drones) setDrones(data.drones.map(mapApiDrone));
+    } catch (error) {
+      console.error("Error fetching drones:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchDrones = async () => {
-      try {
-        const data = await getDronesAPI();
-        setDrones(data.drones);
-      } catch (error) {
-        console.error("Error fetching drones:", error);
-      }
-    };
     fetchDrones();
   }, []);
 
@@ -50,13 +64,21 @@ export function DronesPage() {
     }
   };
   const handleAddDrone = async () => {
+    if (!name.trim()) {
+      setAddError("Drone name is required.");
+      return;
+    }
+    setAddError("");
     try {
-      const response = await addDroneAPI(name, model, maxPayload);
-      if (response.status === 201) {
-        setShowAddModal(false);
-      }
+      await addDroneAPI(name, model, maxPayload);
+      setName("");
+      setModel("");
+      setMaxPayload("");
+      setShowAddModal(false);
+      await fetchDrones();
     } catch (error) {
       console.error("Error adding drone:", error);
+      setAddError("Failed to add drone. Please try again.");
     }
   };
 
@@ -367,9 +389,10 @@ export function DronesPage() {
                 />
               </div>
             </div>
+            {addError && <p className="text-sm text-red-600 mt-2">{addError}</p>}
             <div className="flex gap-3 mt-6">
               <button
-                onClick={() => setShowAddModal(false)}
+                onClick={() => { setShowAddModal(false); setAddError(""); }}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Cancel

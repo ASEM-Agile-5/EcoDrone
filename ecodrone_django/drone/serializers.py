@@ -4,7 +4,8 @@ from .models import Drone
 class DroneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Drone
-        fields = ['id', 'name', 'registered_by', 'status', 'battery_level', 'current_location', 'last_flight']
+        fields = ['id', 'name', 'model', 'max_payload', 'registered_by', 'status', 'battery_level', 'current_location', 'last_flight']
+        read_only_fields = ['id', 'registered_by']
 
 class DroneStatusSerializer(serializers.ModelSerializer):
     class Meta:
