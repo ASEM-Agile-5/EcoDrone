@@ -151,7 +151,7 @@ class MenuByVendorView(APIView):
 class PlaceOrderView(APIView):
 
     def get_assigned_drone(self):
-        return "DRONE-001"
+        return "Agile 5 Drone"
     #     # In a real scenario, this URL would be in settings
     #     drone_service_url = "http://localhost:8001/api/drones/available/" 
         
