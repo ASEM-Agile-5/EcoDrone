@@ -16,16 +16,16 @@ export function OrderQueuePanel() {
           <div
             key={order.id}
             className={`p-4 rounded-xl border ${
-              order.status === 'active'
+              order.status === 'active' || order.status === 'dispatched'
                 ? 'bg-[#f8e0e7] border-[#8A1538]'
                 : 'bg-gray-50 border-gray-200'
             }`}
           >
             <div className="flex justify-between items-start mb-2">
               <span className="text-xs font-bold font-mono text-gray-500">{order.id}</span>
-              {order.status === 'active' ? (
+              {order.status === 'active' || order.status === 'dispatched' ? (
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-[#8A1538] text-white px-2 py-0.5 rounded-full">
-                  Active
+                  {order.status === 'dispatched' ? 'Dispatched' : 'Active'}
                 </span>
               ) : (
                 <span className="text-[10px] font-bold uppercase tracking-wider bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">
@@ -46,13 +46,15 @@ export function OrderQueuePanel() {
             {order.status === 'pending' && missionState === 'idle' && (
               <button
                 type="button"
-                onClick={() => handleDispatch(order)}
+                onClick={() => {
+                  void handleDispatch(order);
+                }}
                 className="w-full bg-[#8A1538] text-white py-2 rounded-full text-xs font-medium hover:bg-[#751130] transition-colors flex items-center justify-center gap-2"
               >
                 <Play size={14} /> Dispatch Drone to Vendor
               </button>
             )}
-            {order.status === 'active' && (
+            {(order.status === 'active' || order.status === 'dispatched') && (
               <div className="text-xs font-medium text-[#8A1538] flex items-center justify-center gap-2 py-1">
                 <Activity size={14} className="animate-spin" /> Mission in Progress
               </div>
