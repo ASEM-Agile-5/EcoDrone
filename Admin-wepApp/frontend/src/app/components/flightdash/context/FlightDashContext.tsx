@@ -15,8 +15,8 @@ interface Order {
   location: string;
   item: string;
   status: string;
-  wpVendor: { lat: number; lon: number };
-  wpBuyer: { lat: number; lon: number };
+  wpVendor: { lat: number; lon: number; name: string };
+  wpBuyer: { lat: number; lon: number; name: string };
 }
 
 interface FlightDashContextValue {
@@ -74,8 +74,19 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
             ? o.items.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')
             : o.item ?? 'Order',
           status: 'pending',
-          wpVendor: WAYPOINTS.VENDOR_1,
-          wpBuyer: WAYPOINTS.BUYER_1,
+          wpVendor: {
+            ...WAYPOINTS.VENDOR_1,
+            name:
+              (typeof o.vendor_name === 'string' && o.vendor_name.trim()) ||
+              (typeof o.vendor === 'string' && o.vendor.trim()) ||
+              WAYPOINTS.VENDOR_1.name,
+          },
+          wpBuyer: {
+            ...WAYPOINTS.BUYER_1,
+            name:
+              (typeof o.location === 'string' && o.location.trim()) ||
+              WAYPOINTS.BUYER_1.name,
+          },
         }));
       setOrders(inProgress);
     });
@@ -193,6 +204,13 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
     updateOrderStatus(order.id, 'active');
   };
 
+  const displayOrder = activeOrder ?? orders[0] ?? null;
+  const displayWaypoints = {
+    ...WAYPOINTS,
+    VENDOR_1: displayOrder?.wpVendor ?? WAYPOINTS.VENDOR_1,
+    BUYER_1: displayOrder?.wpBuyer ?? WAYPOINTS.BUYER_1,
+  };
+
   const value: FlightDashContextValue = {
     currentTime,
     orders,
@@ -214,7 +232,7 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
     handleWheel,
     centerMap,
     handleDispatch,
-    waypoints: WAYPOINTS,
+    waypoints: displayWaypoints,
   };
 
   return (
