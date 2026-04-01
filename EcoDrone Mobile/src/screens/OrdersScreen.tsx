@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { colors } from "../theme/colors";
 import { UserOrders, Order } from "models/order";
@@ -59,9 +59,11 @@ export default function OrdersScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchOrders();
+    }, []),
+  );
 
   const handleOrderPress = (order: Order) => {
     if (isTrackingStatus(order.status)) {
@@ -116,18 +118,15 @@ export default function OrdersScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Current Order */}
-        <View>
-          <Text style={styles.sectionLabel}>CURRENT ORDER</Text>
-          {currentOrder.length > 0 ? (
+        {currentOrder.length > 0 ? (
+          <View>
+            <Text style={styles.sectionLabel}>CURRENT ORDER</Text>
             <OrderCard order={currentOrder[0]} />
-          ) : (
-            <Text style={styles.emptyText}>No active orders</Text>
-          )}
-        </View>
+          </View>
+        ) : null}
 
         {/* Past Orders */}
-        <View style={{ marginTop: 8 }}>
+        <View style={{ marginTop: currentOrder.length > 0 ? 8 : 0 }}>
           <Text style={styles.sectionLabel}>PAST ORDERS</Text>
           {pastOrders.length > 0 ? (
             <View style={styles.pastList}>

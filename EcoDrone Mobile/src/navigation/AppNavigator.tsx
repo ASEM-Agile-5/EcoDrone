@@ -1,4 +1,5 @@
 import React from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
@@ -14,6 +15,7 @@ import OrderTrackingScreen from '../screens/OrderTrackingScreen';
 import OrderBreakdownScreen from '../screens/OrderBreakdownScreen';
 import DroneTemperatureScreen from '../screens/DroneTemperatureScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import { useUser } from '../context/UserContext';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -154,8 +156,28 @@ function MainTabs() {
 }
 
 export default function AppNavigator() {
+  const { authReady, isAuthenticated } = useUser();
+
+  if (!authReady) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.surface,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
+
   return (
-    <RootStack.Navigator screenOptions={{ headerShown: false }} initialRouteName="Login">
+    <RootStack.Navigator
+      screenOptions={{ headerShown: false }}
+      initialRouteName={isAuthenticated ? "Main" : "Login"}
+    >
       <RootStack.Screen name="Login" component={LoginScreen} />
       <RootStack.Screen name="SignUp" component={SignUpScreen} />
       <RootStack.Screen name="Main" component={MainTabs} />

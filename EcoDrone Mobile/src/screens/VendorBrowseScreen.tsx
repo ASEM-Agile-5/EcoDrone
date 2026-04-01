@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import VendorCard from "../components/VendorCard";
 import { colors } from "../theme/colors";
@@ -34,9 +34,11 @@ export default function VendorBrowseScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchVendors();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchVendors();
+    }, []),
+  );
 
   const filtered = vendors.filter((v) =>
     v.name?.toLowerCase().includes(search.toLowerCase()),

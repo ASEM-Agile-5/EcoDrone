@@ -18,7 +18,7 @@ import CustomButton from "../components/CustomButton";
 import { colors } from "../theme/colors";
 import { loginAPI } from "services/services";
 import { LoginResponse } from "models/users";
-// import { useUser } from "../context/UserContext";
+import { useUser } from "../context/UserContext";
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
@@ -29,7 +29,7 @@ const DRONE_IMAGE =
 
 export default function LoginScreen() {
   const navigation = useNavigation<NavigationProp>();
-  // const { setUserId } = useUser();
+  const { completeLogin } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -80,6 +80,7 @@ export default function LoginScreen() {
       const user_id = loginData.user_id;
 
       if (token && user_id) {
+        await completeLogin(String(user_id));
         navigation.reset({ index: 0, routes: [{ name: "Main" }] });
       }
     } catch (error: any) {

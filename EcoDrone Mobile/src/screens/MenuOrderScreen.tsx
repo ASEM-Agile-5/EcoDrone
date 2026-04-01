@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { useFocusEffect, useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import CustomButton from "../components/CustomButton";
 import { colors } from "../theme/colors";
@@ -55,10 +55,12 @@ export default function MenuOrderScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchMenu();
-    fetchLocations();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchMenu();
+      fetchLocations();
+    }, [vendor.id]),
+  );
 
   const addToCart = (id: number) => {
     setCart((prev) => ({ ...prev, [id]: (prev[id] || 0) + 1 }));

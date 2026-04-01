@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -8,11 +8,10 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useUser } from "../context/UserContext";
 import { colors } from "../theme/colors";
-import { clearAuthToken } from "services/services";
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
@@ -57,22 +56,18 @@ const menuItems: MenuItem[] = [
 ];
 
 export default function ProfileScreen() {
-  const { user, loading, refetchUser } = useUser();
+  const { user, refetchUser, logout } = useUser();
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    refetchUser();
-  }, []);
-
-  // useEffect(() => {
-  //   if (!loading && !user) {
-  //     navigation.reset({ index: 0, routes: [{ name: "Login" }] });
-  //   }
-  // }, [loading, user]);
+  useFocusEffect(
+    React.useCallback(() => {
+      refetchUser();
+    }, [refetchUser]),
+  );
 
   const handleLogout = async () => {
-    await clearAuthToken();
+    await logout();
     navigation.reset({ index: 0, routes: [{ name: "Login" }] });
   };
 
