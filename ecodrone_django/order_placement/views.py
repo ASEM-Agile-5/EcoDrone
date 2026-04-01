@@ -5,11 +5,38 @@ from rest_framework import status
 import jwt
 from django.conf import settings
 from .models import Vendor, Order, Location
-from .serializers import OrderSerializer, OrderStatusSerializer, OrderRequestSerializer, UserOrderSerializer, LocationSerializer
+from .serializers import (
+    AssignDroneSerializer,
+    LocationSerializer,
+    OrderDeliveryUpdateSerializer,
+    OrderRequestSerializer,
+    OrderSerializer,
+    OrderStatusSerializer,
+    UserOrderSerializer,
+)
 from django.contrib.auth import get_user_model
 from . import order_status
 # import requests
 import uuid
+
+
+def normalize_order_status(value):
+    if value is None:
+        return None
+
+    normalized = str(value).strip().lower()
+    status_map = {
+        "completed": order_status.COMPLETED,
+        "delivered": order_status.COMPLETED,
+        "failed": order_status.FAILED,
+        "cancelled": order_status.FAILED,
+        "canceled": order_status.FAILED,
+        "in progress": order_status.IN_PROGRESS,
+        "in transit": order_status.IN_PROGRESS,
+        "preparing": order_status.IN_PROGRESS,
+        "pending": order_status.PENDING,
+    }
+    return status_map.get(normalized)
 
 class OrderView(APIView):
     def get(self, request):
@@ -333,17 +360,11 @@ class SetOrderStatusView(APIView):
                 order = Order.objects.get(order_id=request.data.get('order_id'))
                 update_data = {}
                 requested_status = request.data.get('status')
+                normalized_status = normalize_order_status(requested_status)
                 if requested_status is not None:
-                    if requested_status == "Completed":
-                        update_data["status"] = order_status.COMPLETED
-                    elif requested_status == "Failed":
-                        update_data["status"] = order_status.FAILED
-                    elif requested_status == "In Progress":
-                        update_data["status"] = order_status.IN_PROGRESS
-                    elif requested_status == "Pending":
-                        update_data["status"] = order_status.PENDING
-                    else:
+                    if normalized_status is None:
                         return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+                    update_data["status"] = normalized_status
 
                 if 'assigned_drone' in request.data:
                     update_data["assigned_drone"] = request.data.get('assigned_drone') or None
@@ -413,16 +434,10 @@ class AssignDroneView(APIView):
             
             try:
                 order = Order.objects.get(order_id=request.data.get('order_id'))
-                if request.data.get('status') == "Completed":
-                    order.status = order_status.COMPLETED
-                elif request.data.get('status') == "Failed":
-                    order.status = order_status.FAILED
-                elif request.data.get('status') == "In Progress":
-                    order.status = order_status.IN_PROGRESS
-                elif request.data.get('status') == "Pending":
-                    order.status = order_status.PENDING
-                else: 
+                normalized_status = normalize_order_status(request.data.get('status'))
+                if normalized_status is None:
                     return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+                order.status = normalized_status
                 
                 serializer = AssignDroneSerializer(order, data={"assigned_drone": request.data.get('assigned_drone')}, partial=True)
                 if serializer.is_valid():
