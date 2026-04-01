@@ -10,6 +10,7 @@ class OrderItemSerializer(serializers.ModelSerializer):
 
 class OrderSerializer(serializers.ModelSerializer):
     vendor_name = serializers.CharField(source='vendor.name', read_only=True)
+    vendor_image_url = serializers.CharField(source='vendor.image_url', read_only=True)
     customer_name = serializers.SerializerMethodField()
     customer_email = serializers.SerializerMethodField()
     items = OrderItemSerializer(many=True, required=False)
@@ -38,8 +39,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['order_id', 'user', 'timestamp', 'vendor', 'vendor_name', 'customer_name', 'customer_email', 'location', 'total_amount', 'status', 'assigned_drone', 'image_url', 'items']
-        read_only_fields = ['order_id', 'vendor_name', 'customer_name', 'customer_email', 'status']
+        fields = ['order_id', 'user', 'timestamp', 'vendor', 'vendor_name', 'vendor_image_url', 'customer_name', 'customer_email', 'location', 'total_amount', 'status', 'assigned_drone', 'image_url', 'items']
+        read_only_fields = ['order_id', 'vendor_name', 'vendor_image_url', 'customer_name', 'customer_email', 'status']
         
 class UserOrderSerializer(serializers.ModelSerializer):
     past_orders = serializers.SerializerMethodField()
