@@ -1,31 +1,35 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { colors } from '../theme/colors';
 import { Order } from 'models/order';
+import { getOrderDetailsAPI } from 'services/services';
 
 type NavigationProp = NativeStackNavigationProp<any>;
-type RouteType = RouteProp<{ OrderBreakdown: { orderId: string; order: Order } }, 'OrderBreakdown'>;
+type RouteType = RouteProp<{ OrderBreakdown: { orderId: string; order?: Order } }, 'OrderBreakdown'>;
 
 function statusBadgeStyle(status: string) {
-  switch (status) {
-    case 'Delivered':
-    case 'Completed':
+  switch (status?.toLowerCase()) {
+    case 'delivered':
+    case 'completed':
       return { bg: colors.successLight, text: colors.success };
-    case 'Cancelled':
+    case 'cancelled':
+    case 'failed':
       return { bg: '#fde8e8', text: colors.danger };
-    case 'In Transit':
-    case 'Preparing':
-    case 'In Progress':
+    case 'in transit':
+    case 'preparing':
+    case 'in progress':
+    case 'pending':
       return { bg: colors.infoLight, text: colors.info };
     default:
       return { bg: colors.gray100, text: colors.gray500 };
@@ -53,14 +57,49 @@ export default function OrderBreakdownScreen() {
   const route = useRoute<RouteType>();
   const insets = useSafeAreaInsets();
 
-  const order = route.params?.order;
-  const orderId = route.params?.orderId || order?.order_id || '—';
-  const totalAmount = parseFloat(String(order?.total_amount || 0));
+  const initialOrder = route.params?.order;
+  const orderId = route.params?.orderId || initialOrder?.order_id || '—';
+  const [order, setOrder] = useState<Order | null>(initialOrder ?? null);
+  const [loading, setLoading] = useState(!initialOrder);
+  const [error, setError] = useState('');
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let active = true;
+
+      const fetchOrder = async () => {
+        setLoading(true);
+        setError('');
+        try {
+          const data = await getOrderDetailsAPI(orderId);
+          if (active) {
+            setOrder(data ?? null);
+          }
+        } catch {
+          if (active) {
+            setError('Failed to load order details.');
+          }
+        } finally {
+          if (active) {
+            setLoading(false);
+          }
+        }
+      };
+
+      fetchOrder();
+
+      return () => {
+        active = false;
+      };
+    }, [orderId]),
+  );
+
+  const totalAmount = Number(order?.total_amount ?? 0);
   const badge = statusBadgeStyle(order?.status || '');
+  const vendorName = order?.vendor_name ?? '—';
 
   return (
     <View style={styles.flex}>
-      {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={colors.white} />
@@ -74,98 +113,106 @@ export default function OrderBreakdownScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Order Status Card */}
-        <View style={styles.card}>
-          <View style={styles.statusRow}>
-            <View>
-              <Text style={styles.vendorName}>Vendor #{order?.vendor}</Text>
-              <Text style={styles.orderDate}>{formatDate(order?.timestamp || '')}</Text>
-            </View>
-            <View style={[styles.statusBadge, { backgroundColor: badge.bg }]}>
-              <Text style={[styles.statusBadgeText, { color: badge.text }]}>
-                {order?.status || '—'}
-              </Text>
-            </View>
+        {loading ? (
+          <View style={styles.centerState}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.stateText}>Loading order details...</Text>
           </View>
-          <View style={styles.divider} />
-          <View>
-            <Text style={styles.fieldLabel}>Delivery Location</Text>
-            <Text style={styles.fieldValue}>{order?.location || '—'}</Text>
+        ) : error ? (
+          <View style={styles.centerState}>
+            <Text style={styles.errorText}>{error}</Text>
           </View>
-        </View>
-
-        {/* Order Items */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Order Items</Text>
-          {order?.items && order.items.length > 0 ? (
-            order.items.map((item, index) => (
-              <View key={index} style={styles.itemRow}>
+        ) : (
+          <>
+            <View style={styles.card}>
+              <View style={styles.statusRow}>
                 <View>
-                  <Text style={styles.itemName}>{item.name}</Text>
-                  <Text style={styles.itemQty}>Qty: {item.quantity}</Text>
+                  <Text style={styles.vendorName}>{vendorName}</Text>
+                  <Text style={styles.orderDate}>{formatDate(order?.timestamp || '')}</Text>
                 </View>
-                <Text style={styles.itemPrice}>
-                  GH₵{(item.price * item.quantity).toFixed(2)}
-                </Text>
+                <View style={[styles.statusBadge, { backgroundColor: badge.bg }]}>
+                  <Text style={[styles.statusBadgeText, { color: badge.text }]}>
+                    {order?.status || '—'}
+                  </Text>
+                </View>
               </View>
-            ))
-          ) : (
-            <Text style={styles.emptyText}>No item details available</Text>
-          )}
-        </View>
+              <View style={styles.divider} />
+              <View>
+                <Text style={styles.fieldLabel}>Delivery Location</Text>
+                <Text style={styles.fieldValue}>{order?.location || '—'}</Text>
+              </View>
+            </View>
 
-        {/* Payment Summary */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Payment Summary</Text>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>GH₵{totalAmount.toFixed(2)}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Delivery Fee</Text>
-            <Text style={styles.freeText}>Free</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Service Fee</Text>
-            <Text style={styles.summaryValue}>GH₵0.00</Text>
-          </View>
-          <View style={[styles.summaryRow, styles.totalRow]}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>GH₵{totalAmount.toFixed(2)}</Text>
-          </View>
-        </View>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Order Items</Text>
+              {order?.items && order.items.length > 0 ? (
+                order.items.map((item, index) => (
+                  <View key={`${item.name}-${index}`} style={styles.itemRow}>
+                    <View>
+                      <Text style={styles.itemName}>{item.name}</Text>
+                      <Text style={styles.itemQty}>Qty: {item.quantity}</Text>
+                    </View>
+                    <Text style={styles.itemPrice}>
+                      GH₵{(Number(item.price) * item.quantity).toFixed(2)}
+                    </Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={styles.emptyText}>No item details available</Text>
+              )}
+            </View>
 
-        {/* Drone Assignment */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Drone Assignment</Text>
-          <View style={styles.paymentRow}>
-            <View style={styles.paymentIcon}>
-              <Ionicons name="airplane-outline" size={20} color={colors.primary} />
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Payment Summary</Text>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Subtotal</Text>
+                <Text style={styles.summaryValue}>GH₵{totalAmount.toFixed(2)}</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Delivery Fee</Text>
+                <Text style={styles.freeText}>Free</Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Service Fee</Text>
+                <Text style={styles.summaryValue}>GH₵0.00</Text>
+              </View>
+              <View style={[styles.summaryRow, styles.totalRow]}>
+                <Text style={styles.totalLabel}>Total</Text>
+                <Text style={styles.totalValue}>GH₵{totalAmount.toFixed(2)}</Text>
+              </View>
             </View>
-            <View>
-              <Text style={styles.paymentTitle}>
-                {order?.assigned_drone ? `Drone: ${order.assigned_drone}` : 'Not Assigned Yet'}
-              </Text>
-              <Text style={styles.paymentSub}>
-                {order?.assigned_drone ? 'Drone delivery' : 'Pending drone assignment'}
-              </Text>
-            </View>
-          </View>
-        </View>
 
-        {/* Payment Method */}
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Payment Method</Text>
-          <View style={styles.paymentRow}>
-            <View style={styles.paymentIcon}>
-              <Text style={styles.paymentEmoji}>💳</Text>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Drone Assignment</Text>
+              <View style={styles.paymentRow}>
+                <View style={styles.paymentIcon}>
+                  <Ionicons name="airplane-outline" size={20} color={colors.primary} />
+                </View>
+                <View>
+                  <Text style={styles.paymentTitle}>
+                    {order?.assigned_drone ? `Drone: ${order.assigned_drone}` : 'Not Assigned Yet'}
+                  </Text>
+                  <Text style={styles.paymentSub}>
+                    {order?.assigned_drone ? 'Drone delivery' : 'Pending drone assignment'}
+                  </Text>
+                </View>
+              </View>
             </View>
-            <View>
-              <Text style={styles.paymentTitle}>Mobile Money</Text>
-              <Text style={styles.paymentSub}>MoMo Payment</Text>
+
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Payment Method</Text>
+              <View style={styles.paymentRow}>
+                <View style={styles.paymentIcon}>
+                  <Text style={styles.paymentEmoji}>💳</Text>
+                </View>
+                <View>
+                  <Text style={styles.paymentTitle}>Mobile Money</Text>
+                  <Text style={styles.paymentSub}>MoMo Payment</Text>
+                </View>
+              </View>
             </View>
-          </View>
-        </View>
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -193,7 +240,14 @@ const styles = StyleSheet.create({
     elevation: 2,
     gap: 12,
   },
-  cardTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
+  centerState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+    gap: 10,
+  },
+  stateText: { fontSize: 14, color: colors.gray500 },
+  errorText: { fontSize: 14, color: colors.danger, textAlign: 'center' },
   statusRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -210,6 +264,7 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: colors.border },
   fieldLabel: { fontSize: 12, color: colors.gray500 },
   fieldValue: { fontSize: 14, fontWeight: '500', color: colors.text, marginTop: 2 },
+  cardTitle: { fontSize: 15, fontWeight: '600', color: colors.text },
   itemRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
