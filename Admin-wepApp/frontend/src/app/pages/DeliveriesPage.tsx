@@ -41,19 +41,43 @@ interface Order {
   imageUrl: string;
 }
 
+const EDITABLE_DELIVERY_STATUSES = [
+  "Pending",
+  "In Progress",
+  "Completed",
+  "Failed",
+] as const;
+
+type EditableDeliveryStatus = (typeof EDITABLE_DELIVERY_STATUSES)[number];
+
 const normalizeStatus = (status: string): string => {
   switch (status?.toLowerCase()) {
     case "in progress":
+    case "in progress ":
+    case "preparing":
+    case "in transit":
       return "In Progress";
     case "pending":
       return "Pending";
     case "completed":
+    case "delivered":
       return "Completed";
     case "failed":
+    case "cancelled":
+    case "canceled":
       return "Failed";
     default:
       return status ?? "";
   }
+};
+
+const toEditableStatus = (status: string): EditableDeliveryStatus => {
+  const normalized = normalizeStatus(status);
+  if (EDITABLE_DELIVERY_STATUSES.includes(normalized as EditableDeliveryStatus)) {
+    return normalized as EditableDeliveryStatus;
+  }
+
+  return "Pending";
 };
 
 const mapApiOrder = (order: any): Order => ({
@@ -142,7 +166,7 @@ export function DeliveriesPage() {
 
   const handleEdit = (delivery: Order) => {
     setEditingOrder(delivery);
-    setEditStatus(delivery.status);
+    setEditStatus(toEditableStatus(delivery.status));
     setEditDrone(delivery.assigned_drone === "Unassigned" ? "" : delivery.assigned_drone);
     setSaveError("");
   };
@@ -152,11 +176,35 @@ export function DeliveriesPage() {
       setSaveLoading(true);
       setSaveError("");
       try {
-        const response = await updateOrderDeliveryAPI({
+        const nextDrone = editDrone || null;
+        const currentEditableStatus = toEditableStatus(editingOrder.status);
+        const currentDrone =
+          editingOrder.assigned_drone && editingOrder.assigned_drone !== "Unassigned"
+            ? editingOrder.assigned_drone
+            : null;
+
+        const payload: {
+          order_id: string;
+          status?: string;
+          assigned_drone?: string | null;
+        } = {
           order_id: editingOrder.order_id,
-          status: editStatus,
-          assigned_drone: editDrone || null,
-        });
+        };
+
+        if (editStatus !== currentEditableStatus) {
+          payload.status = editStatus;
+        }
+
+        if (nextDrone !== currentDrone) {
+          payload.assigned_drone = nextDrone;
+        }
+
+        if (!payload.status && !("assigned_drone" in payload)) {
+          setEditingOrder(null);
+          return;
+        }
+
+        const response = await updateOrderDeliveryAPI(payload);
 
         if (response?.status === 401) {
           setSaveError("You are not authorized to update this delivery.");
@@ -180,9 +228,18 @@ export function DeliveriesPage() {
             : currentViewingOrder,
         );
         setEditingOrder(null);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to save delivery update:", error);
-        setSaveError("Failed to save delivery updates. Please try again.");
+        const apiError = error?.response?.data;
+        if (error?.response?.status === 401) {
+          setSaveError("You are not authorized to update this delivery.");
+        } else if (error?.response?.status === 403) {
+          setSaveError(apiError?.error ?? "Only authorized admins can update deliveries.");
+        } else if (typeof apiError?.error === "string") {
+          setSaveError(apiError.error);
+        } else {
+          setSaveError("Failed to save delivery updates. Please try again.");
+        }
       } finally {
         setSaveLoading(false);
       }
