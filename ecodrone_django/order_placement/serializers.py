@@ -51,13 +51,13 @@ class UserOrderSerializer(serializers.ModelSerializer):
     
     def get_past_orders(self, obj):
         user_id = self.context.get('user_id')
-        orders = Order.objects.filter(user_id=user_id, status='Completed')
+        orders = Order.objects.filter(user_id=user_id, status__iexact='Completed')
         serializer = OrderSerializer(orders, many=True)
         return serializer.data
 
     def get_current_orders(self, obj):
         user_id = self.context.get('user_id')
-        orders = Order.objects.filter(user_id=user_id, status='In Progress')
+        orders = Order.objects.filter(user_id=user_id, status__iexact='In Progress')
         serializer = OrderSerializer(orders, many=True)
         return serializer.data
 class OrderRequestSerializer(serializers.ModelSerializer):
