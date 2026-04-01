@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { Map as MapIcon, MapPin, Maximize, Minus, Plus } from 'lucide-react';
 import { useFlightDash } from './context/FlightDashContext';
 import { useMapEngine } from './hooks/useMapEngine';
@@ -19,8 +20,28 @@ export function LogisticsMap() {
     handleWheel,
     centerMap,
   } = useFlightDash();
+  const [mapSize, setMapSize] = useState({ width: 0, height: 0 });
 
   const { centerPx, project } = useMapEngine(zoom, pan);
+
+  useEffect(() => {
+    const element = mapRef.current;
+    if (!element) return;
+
+    const updateSize = () => {
+      setMapSize({
+        width: element.clientWidth,
+        height: element.clientHeight,
+      });
+    };
+
+    updateSize();
+
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [mapRef]);
 
   const renderMapTiles = () => {
     const cx = centerPx.x - pan.x / zoom;
@@ -53,6 +74,8 @@ export function LogisticsMap() {
   };
 
   const baseProj = project(waypoints.BASE.lat, waypoints.BASE.lon);
+  const centerX = mapSize.width > 0 ? mapSize.width / 2 : 400;
+  const centerY = mapSize.height > 0 ? mapSize.height / 2 : 300;
 
   return (
     <div className="flex-1 bg-gray-100 rounded-xl overflow-hidden relative shadow-sm border border-gray-200 flex flex-col">
@@ -76,7 +99,7 @@ export function LogisticsMap() {
         onWheel={handleWheel}
       >
         <svg className="absolute inset-0 w-full h-full pointer-events-none">
-          <g transform="translate(50%, 50%)">
+          <g transform={`translate(${centerX} ${centerY})`}>
             {renderMapTiles()}
 
             {Object.entries(waypoints).map(([key, wp]) => {
