@@ -150,28 +150,6 @@ class MenuByVendorView(APIView):
 
 class PlaceOrderView(APIView):
 
-    def get_assigned_drone(self):
-        return "Agile 5 Drone"
-    #     # In a real scenario, this URL would be in settings
-    #     drone_service_url = "http://localhost:8001/api/drones/available/" 
-        
-    #     try:
-    #         # Make the GET request to the external service
-    #         response = requests.get(drone_service_url, timeout=5)
-            
-    #         if response.status_code == 200:
-    #             data = response.json()
-    #             # Assuming the API returns a list and we pick the first one, 
-    #             # or calls /assign endpoint which returns a single drone
-    #             # Adjust key access based on actual response structure
-    #             return data.get('drone_id') 
-    #         else:
-    #             print(f"Error fetching drone: {response.status_code}")
-    #             return None
-    #     except requests.exceptions.RequestException as e:
-    #         print(f"Request failed: {e}")
-    #         return None
-
     def post(self, request):
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
 
@@ -187,18 +165,19 @@ class PlaceOrderView(APIView):
             
             # Generate Order ID
             order_id = str(uuid.uuid4())
-            
-            # Get assigned drone
-            assigned_drone = self.get_assigned_drone()
 
             # Prepare data
             data = request.data.copy()
-            data['assigned_drone'] = assigned_drone
+            data['assigned_drone'] = None
             data['user'] = user_id
 
             serializer = OrderSerializer(data=data)
             if serializer.is_valid():
-                serializer.save(order_id=order_id)
+                serializer.save(
+                    order_id=order_id,
+                    status=order_status.PENDING,
+                    assigned_drone=None,
+                )
                 # You might want to return the drone info specifically or just the full order
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
