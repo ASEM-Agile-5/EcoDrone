@@ -68,6 +68,10 @@ class OrderStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['order_id', 'status']
+class AssignDroneSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['assigned_drone']
 
 class LocationSerializer(serializers.ModelSerializer):
     class Meta:

@@ -88,6 +88,7 @@ class OrderByUserView(APIView):
             return Response({"error": "Token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
         except jwt.InvalidTokenError:
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+            
 class MenuByVendorView(APIView):
     def get(self, request):
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
@@ -394,3 +395,49 @@ class LocationListView(APIView):
         except jwt.InvalidTokenError:
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 
+class AssignDroneView(APIView):
+    def post(self, request):
+        token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
+
+        if not token:
+            return Response({"error": "Token not found"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            user_id = payload['user_id']
+            User = get_user_model()
+            user = User.objects.get(id=user_id)
+
+            if not user.is_superuser:
+                return Response({"error": "Only superusers can view/update drone status"}, status=status.HTTP_403_FORBIDDEN)
+            
+            try:
+                order = Order.objects.get(order_id=request.data.get('order_id'))
+                if request.data.get('status') == "Completed":
+                    order.status = order_status.COMPLETED
+                elif request.data.get('status') == "Failed":
+                    order.status = order_status.FAILED
+                elif request.data.get('status') == "In Progress":
+                    order.status = order_status.IN_PROGRESS
+                elif request.data.get('status') == "Pending":
+                    order.status = order_status.PENDING
+                else: 
+                    return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+                
+                serializer = AssignDroneSerializer(order, data={"assigned_drone": request.data.get('assigned_drone')}, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response({"message": "Order status updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            except Order.DoesNotExist:
+                return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)           
+  
