@@ -51,7 +51,7 @@ export function OrderQueuePanel() {
                 }}
                 className="w-full bg-[#8A1538] text-white py-2 rounded-full text-xs font-medium hover:bg-[#751130] transition-colors flex items-center justify-center gap-2"
               >
-                <Play size={14} /> Dispatch Drone to Vendor
+                <Play size={14} /> Dispatch Drone
               </button>
             )}
             {order.status === 'active' && (
