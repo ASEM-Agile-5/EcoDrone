@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 import { WAYPOINTS } from '../constants';
-import { getOrdersAPI, updateOrderDeliveryAPI } from '../../../services/services';
+import { getOrdersAPI } from '../../../services/services';
 
 interface Order {
   id: string;
@@ -39,22 +39,11 @@ interface FlightDashContextValue {
   handleMouseUp: () => void;
   handleWheel: (e: React.WheelEvent) => void;
   centerMap: () => void;
-  handleDispatch: (order: Order) => Promise<void>;
+  handleDispatch: (order: Order) => void;
   waypoints: typeof WAYPOINTS;
 }
 
 const FlightDashContext = createContext<FlightDashContextValue | null>(null);
-
-const FLIGHT_QUEUE_STATUSES = new Set(['pending', 'dispatched', 'in progress']);
-
-function normalizeFlightOrderStatus(value: unknown) {
-  const normalized = String(value ?? '').trim().toLowerCase();
-
-  if (normalized === 'dispatched') return 'dispatched';
-  if (normalized === 'in progress') return 'active';
-  if (normalized === 'completed' || normalized === 'delivered') return 'completed';
-  return 'pending';
-}
 
 export function FlightDashProvider({ children }: { children: React.ReactNode }) {
   const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleTimeString());
@@ -76,7 +65,7 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
     getOrdersAPI().then((data: any[]) => {
       if (!Array.isArray(data)) return;
       const inProgress = data
-        .filter((o: any) => FLIGHT_QUEUE_STATUSES.has(String(o.status ?? '').trim().toLowerCase()))
+        .filter((o: any) => o.status?.toLowerCase() === 'in progress')
         .map((o: any): Order => ({
           id: String(o.order_id ?? ''),
           vendor: o.vendor_name ?? String(o.vendor ?? ''),
@@ -84,7 +73,7 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
           item: Array.isArray(o.items) && o.items.length > 0
             ? o.items.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')
             : o.item ?? 'Order',
-          status: normalizeFlightOrderStatus(o.status),
+          status: 'pending',
           wpVendor: {
             ...WAYPOINTS.VENDOR_1,
             name:
@@ -209,19 +198,10 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
     setPan({ x: 0, y: 0 });
   };
 
-  const handleDispatch = async (order: Order) => {
-    try {
-      await updateOrderDeliveryAPI({
-        order_id: order.id,
-        status: 'Dispatched',
-      });
-
-      setActiveOrder({ ...order, status: 'dispatched' });
-      setMissionState('to_vendor');
-      updateOrderStatus(order.id, 'dispatched');
-    } catch (error) {
-      console.error('Failed to dispatch order', error);
-    }
+  const handleDispatch = (order: Order) => {
+    setActiveOrder(order);
+    setMissionState('to_vendor');
+    updateOrderStatus(order.id, 'active');
   };
 
   const displayOrder = activeOrder ?? orders[0] ?? null;
