@@ -11,7 +11,6 @@ import {
   Platform,
   Dimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
@@ -19,7 +18,7 @@ import CustomButton from "../components/CustomButton";
 import { colors } from "../theme/colors";
 import { loginAPI } from "services/services";
 import { LoginResponse } from "models/users";
-// import { useUser } from "../context/UserContext";
+import { useUser } from "../context/UserContext";
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
@@ -30,17 +29,34 @@ const DRONE_IMAGE =
 
 export default function LoginScreen() {
   const navigation = useNavigation<NavigationProp>();
-  // const { setUserId } = useUser();
+  const { completeLogin } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
+  const [loading, setLoading] = useState(false);
+
+  const validate = () => {
+    const errors: { email?: string; password?: string } = {};
+    if (!email.trim()) {
+      errors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Please enter a valid email address.";
+    }
+    if (!password) {
+      errors.password = "Password is required.";
+    }
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleLogin = async () => {
-    console.log("Login attempt");
     setError("");
+    if (!validate()) return;
 
+    setLoading(true);
     try {
       const response: any = await loginAPI(email, password);
 
@@ -48,17 +64,14 @@ export default function LoginScreen() {
         throw new Error("Login failed");
       }
       if (response.status === 401) {
-        console.log("Wrong credentials");
-        setError("Password or email is incorrect. Please try again.");
+        setError("Incorrect email or password. Please try again.");
         return;
       }
 
       const data = response.data;
 
-      // Handle non_field_errors from the API (e.g. incorrect credentials)
       if (data?.non_field_errors && data.non_field_errors.length > 0) {
-        const errorMessage = data.non_field_errors.join(", ");
-        setError(errorMessage);
+        setError(data.non_field_errors.join(", "));
         return;
       }
 
@@ -67,22 +80,28 @@ export default function LoginScreen() {
       const user_id = loginData.user_id;
 
       if (token && user_id) {
-        // setUserId(user_id);w
+        await completeLogin(String(user_id));
         navigation.reset({ index: 0, routes: [{ name: "Main" }] });
       }
     } catch (error: any) {
       console.error(error);
 
-      // Also handle non_field_errors from error responses (e.g. 400 status)
       const errData = error?.response?.data;
       if (errData?.non_field_errors && errData.non_field_errors.length > 0) {
         setError(errData.non_field_errors.join(", "));
         return;
       }
+      if (errData?.detail) {
+        setError(errData.detail);
+        return;
+      }
 
-      setError("An error occurred during login. Please try again.");
+      setError("Incorrect email or password. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
+
   return (
     <KeyboardAvoidingView
       style={styles.flex}
@@ -111,17 +130,17 @@ export default function LoginScreen() {
           {/* Email */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Ashesi Email</Text>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, fieldErrors.email ? styles.inputError : null]}>
               <Ionicons
                 name="mail-outline"
                 size={20}
-                color={colors.gray400}
+                color={fieldErrors.email ? colors.danger : colors.gray400}
                 style={styles.inputIcon}
               />
               <TextInput
                 style={styles.input}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(v) => { setEmail(v); setFieldErrors((e) => ({ ...e, email: undefined })); }}
                 placeholder="student@ashesi.edu.gh"
                 placeholderTextColor={colors.gray400}
                 keyboardType="email-address"
@@ -129,22 +148,23 @@ export default function LoginScreen() {
                 autoCorrect={false}
               />
             </View>
+            {fieldErrors.email ? <Text style={styles.fieldError}>{fieldErrors.email}</Text> : null}
           </View>
 
           {/* Password */}
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Password</Text>
-            <View style={styles.inputWrapper}>
+            <View style={[styles.inputWrapper, fieldErrors.password ? styles.inputError : null]}>
               <Ionicons
                 name="lock-closed-outline"
                 size={20}
-                color={colors.gray400}
+                color={fieldErrors.password ? colors.danger : colors.gray400}
                 style={styles.inputIcon}
               />
               <TextInput
                 style={[styles.input, styles.inputWithRight]}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(v) => { setPassword(v); setFieldErrors((e) => ({ ...e, password: undefined })); }}
                 placeholder="Enter your password"
                 placeholderTextColor={colors.gray400}
                 secureTextEntry={!showPassword}
@@ -160,6 +180,7 @@ export default function LoginScreen() {
                 />
               </TouchableOpacity>
             </View>
+            {fieldErrors.password ? <Text style={styles.fieldError}>{fieldErrors.password}</Text> : null}
           </View>
 
           {/* Remember me + Forgot password */}
@@ -183,7 +204,9 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          <CustomButton onPress={handleLogin} fullWidth>
+          {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
+
+          <CustomButton onPress={handleLogin} fullWidth loading={loading} disabled={loading}>
             Sign In
           </CustomButton>
 
@@ -242,7 +265,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   fieldGroup: {
-    gap: 8,
+    gap: 6,
   },
   label: {
     fontSize: 14,
@@ -256,6 +279,9 @@ const styles = StyleSheet.create({
     borderColor: colors.gray300,
     borderRadius: 10,
     backgroundColor: colors.white,
+  },
+  inputError: {
+    borderColor: colors.danger,
   },
   inputIcon: {
     paddingLeft: 12,
@@ -306,6 +332,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
     color: colors.primary,
+  },
+  fieldError: {
+    fontSize: 12,
+    color: colors.danger,
+  },
+  errorBanner: {
+    fontSize: 14,
+    color: colors.danger,
+    textAlign: "center",
+    backgroundColor: "#fef2f2",
+    borderRadius: 8,
+    padding: 10,
   },
   signupRow: {
     flexDirection: "row",

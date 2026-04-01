@@ -1,6 +1,5 @@
 from django.urls import path
-from .views import MenuByVendorView, PlaceOrderView, OrderDetailsView, OrderView, OrderByStatusView, SetOrderStatusView, OrderByUserView,
- LocationListView, RegisterLocationView, AssignDroneView
+from .views import MenuByVendorView, PlaceOrderView, OrderDetailsView, OrderView, OrderByStatusView, SetOrderStatusView, OrderByUserView, LocationListView, RegisterLocationView, AssignDroneView
 
 urlpatterns = [
     path('menus', MenuByVendorView.as_view(), name='menu-list'),

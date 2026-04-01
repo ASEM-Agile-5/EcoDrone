@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import CustomButton from '../components/CustomButton';
 import { colors } from '../theme/colors';
+import { signUpAPI } from 'services/services';
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
@@ -32,13 +33,93 @@ export default function SignUpScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setFieldErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
-  const handleSignUp = () => {
-    navigation.navigate('Login');
+  const validate = () => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.fullName.trim()) {
+      errors.fullName = 'Full name is required.';
+    } else if (formData.fullName.trim().split(' ').length < 2) {
+      errors.fullName = 'Please enter your first and last name.';
+    }
+
+    if (!formData.email.trim()) {
+      errors.email = 'Email is required.';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = 'Please enter a valid email address.';
+    }
+
+    if (!formData.phone.trim()) {
+      errors.phone = 'Phone number is required.';
+    }
+
+    if (!formData.password) {
+      errors.password = 'Password is required.';
+    } else if (formData.password.length < 8) {
+      errors.password = 'Password must be at least 8 characters.';
+    }
+
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = 'Please confirm your password.';
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match.';
+    }
+
+    if (!agreed) {
+      errors.terms = 'You must accept the Terms & Conditions.';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSignUp = async () => {
+    setError('');
+    if (!validate()) return;
+
+    const nameParts = formData.fullName.trim().split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ');
+    const username = formData.email.split('@')[0];
+
+    setLoading(true);
+    try {
+      await signUpAPI({
+        email: formData.email,
+        password: formData.password,
+        password_confirm: formData.confirmPassword,
+        first_name: firstName,
+        last_name: lastName,
+        username,
+        terms_accepted: agreed,
+      });
+      navigation.navigate('Login');
+    } catch (err: any) {
+      const errData = err?.response?.data;
+      if (errData) {
+        // Map backend field errors to friendly messages
+        const messages: string[] = [];
+        Object.entries(errData).forEach(([key, val]) => {
+          const msg = Array.isArray(val) ? val.join(', ') : String(val);
+          if (key === 'email') setFieldErrors((p) => ({ ...p, email: msg }));
+          else if (key === 'password') setFieldErrors((p) => ({ ...p, password: msg }));
+          else messages.push(msg);
+        });
+        if (messages.length > 0) setError(messages.join(' '));
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -64,8 +145,8 @@ export default function SignUpScreen() {
         {/* Full Name */}
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Full Name</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="person-outline" size={20} color={colors.gray400} style={styles.inputIcon} />
+          <View style={[styles.inputWrapper, fieldErrors.fullName ? styles.inputError : null]}>
+            <Ionicons name="person-outline" size={20} color={fieldErrors.fullName ? colors.danger : colors.gray400} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               value={formData.fullName}
@@ -74,13 +155,14 @@ export default function SignUpScreen() {
               placeholderTextColor={colors.gray400}
             />
           </View>
+          {fieldErrors.fullName ? <Text style={styles.fieldError}>{fieldErrors.fullName}</Text> : null}
         </View>
 
         {/* Email */}
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Ashesi Email</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="mail-outline" size={20} color={colors.gray400} style={styles.inputIcon} />
+          <View style={[styles.inputWrapper, fieldErrors.email ? styles.inputError : null]}>
+            <Ionicons name="mail-outline" size={20} color={fieldErrors.email ? colors.danger : colors.gray400} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               value={formData.email}
@@ -91,13 +173,14 @@ export default function SignUpScreen() {
               autoCapitalize="none"
             />
           </View>
+          {fieldErrors.email ? <Text style={styles.fieldError}>{fieldErrors.email}</Text> : null}
         </View>
 
         {/* Phone */}
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Phone Number</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="call-outline" size={20} color={colors.gray400} style={styles.inputIcon} />
+          <View style={[styles.inputWrapper, fieldErrors.phone ? styles.inputError : null]}>
+            <Ionicons name="call-outline" size={20} color={fieldErrors.phone ? colors.danger : colors.gray400} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
               value={formData.phone}
@@ -107,13 +190,14 @@ export default function SignUpScreen() {
               keyboardType="phone-pad"
             />
           </View>
+          {fieldErrors.phone ? <Text style={styles.fieldError}>{fieldErrors.phone}</Text> : null}
         </View>
 
         {/* Password */}
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Password</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={20} color={colors.gray400} style={styles.inputIcon} />
+          <View style={[styles.inputWrapper, fieldErrors.password ? styles.inputError : null]}>
+            <Ionicons name="lock-closed-outline" size={20} color={fieldErrors.password ? colors.danger : colors.gray400} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, styles.inputWithRight]}
               value={formData.password}
@@ -126,13 +210,14 @@ export default function SignUpScreen() {
               <Ionicons name={showPassword ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.gray400} />
             </TouchableOpacity>
           </View>
+          {fieldErrors.password ? <Text style={styles.fieldError}>{fieldErrors.password}</Text> : null}
         </View>
 
         {/* Confirm Password */}
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Confirm Password</Text>
-          <View style={styles.inputWrapper}>
-            <Ionicons name="lock-closed-outline" size={20} color={colors.gray400} style={styles.inputIcon} />
+          <View style={[styles.inputWrapper, fieldErrors.confirmPassword ? styles.inputError : null]}>
+            <Ionicons name="lock-closed-outline" size={20} color={fieldErrors.confirmPassword ? colors.danger : colors.gray400} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, styles.inputWithRight]}
               value={formData.confirmPassword}
@@ -145,26 +230,32 @@ export default function SignUpScreen() {
               <Ionicons name={showConfirm ? 'eye-outline' : 'eye-off-outline'} size={20} color={colors.gray400} />
             </TouchableOpacity>
           </View>
+          {fieldErrors.confirmPassword ? <Text style={styles.fieldError}>{fieldErrors.confirmPassword}</Text> : null}
         </View>
 
         {/* Terms */}
-        <TouchableOpacity
-          style={styles.termsRow}
-          onPress={() => setAgreed(!agreed)}
-          activeOpacity={0.7}
-        >
-          <View style={[styles.checkbox, agreed && styles.checkboxChecked]}>
-            {agreed && <Ionicons name="checkmark" size={12} color={colors.white} />}
-          </View>
-          <Text style={styles.termsText}>
-            I agree to the{' '}
-            <Text style={styles.termsLink}>Terms & Conditions</Text>
-            {' '}and{' '}
-            <Text style={styles.termsLink}>Privacy Policy</Text>
-          </Text>
-        </TouchableOpacity>
+        <View>
+          <TouchableOpacity
+            style={styles.termsRow}
+            onPress={() => { setAgreed(!agreed); setFieldErrors((p) => ({ ...p, terms: '' })); }}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.checkbox, agreed && styles.checkboxChecked, fieldErrors.terms ? styles.checkboxError : null]}>
+              {agreed && <Ionicons name="checkmark" size={12} color={colors.white} />}
+            </View>
+            <Text style={styles.termsText}>
+              I agree to the{' '}
+              <Text style={styles.termsLink}>Terms & Conditions</Text>
+              {' '}and{' '}
+              <Text style={styles.termsLink}>Privacy Policy</Text>
+            </Text>
+          </TouchableOpacity>
+          {fieldErrors.terms ? <Text style={[styles.fieldError, { marginTop: 4 }]}>{fieldErrors.terms}</Text> : null}
+        </View>
 
-        <CustomButton onPress={handleSignUp} fullWidth>
+        {error ? <Text style={styles.errorBanner}>{error}</Text> : null}
+
+        <CustomButton onPress={handleSignUp} fullWidth loading={loading} disabled={loading}>
           Create Account
         </CustomButton>
 
@@ -214,7 +305,7 @@ const styles = StyleSheet.create({
     gap: 18,
   },
   fieldGroup: {
-    gap: 8,
+    gap: 6,
   },
   label: {
     fontSize: 14,
@@ -228,6 +319,9 @@ const styles = StyleSheet.create({
     borderColor: colors.gray300,
     borderRadius: 10,
     backgroundColor: colors.white,
+  },
+  inputError: {
+    borderColor: colors.danger,
   },
   inputIcon: {
     paddingLeft: 12,
@@ -247,6 +341,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 14,
   },
+  fieldError: {
+    fontSize: 12,
+    color: colors.danger,
+  },
+  errorBanner: {
+    fontSize: 14,
+    color: colors.danger,
+    textAlign: 'center',
+    backgroundColor: colors.dangerLight,
+    borderRadius: 8,
+    padding: 10,
+  },
   termsRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -265,6 +371,9 @@ const styles = StyleSheet.create({
   checkboxChecked: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
+  },
+  checkboxError: {
+    borderColor: colors.danger,
   },
   termsText: {
     flex: 1,

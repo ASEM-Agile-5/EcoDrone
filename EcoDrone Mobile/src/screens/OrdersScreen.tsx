@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   Image,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { colors } from "../theme/colors";
 import { UserOrders, Order } from "models/order";
@@ -16,14 +16,24 @@ import { getUserOrdersAPI } from "services/services";
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
+function isTrackingStatus(status: Order["status"]) {
+  return ["Pending", "Preparing", "In Progress", "In Transit"].some(
+    (value) => value.toLowerCase() === status?.toLowerCase(),
+  );
+}
+
 function statusColor(status: Order["status"]) {
-  switch (status) {
-    case "In Transit":
-    case "Preparing":
+  switch (status?.toLowerCase()) {
+    case "pending":
+    case "in transit":
+    case "preparing":
+    case "in progress":
       return colors.info;
-    case "Delivered":
+    case "delivered":
+    case "completed":
       return colors.success;
-    case "Cancelled":
+    case "cancelled":
+    case "failed":
       return colors.danger;
     default:
       return colors.gray500;
@@ -49,12 +59,14 @@ export default function OrdersScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchOrders();
+    }, []),
+  );
 
   const handleOrderPress = (order: Order) => {
-    if (order.status === "In Transit" || order.status === "Preparing") {
+    if (isTrackingStatus(order.status)) {
       navigation.navigate("OrderTracking", { orderId: order.order_id });
     } else {
       navigation.navigate("OrderBreakdown", { orderId: order.order_id, order });
@@ -68,22 +80,29 @@ export default function OrdersScreen() {
       activeOpacity={0.8}
     >
       <Image
-        source={{ uri: order?.image_url }}
+        source={{ uri: order?.vendor_image_url ?? order?.image_url ?? undefined }}
         style={styles.orderImage}
         resizeMode="cover"
       />
       <View style={styles.orderInfo}>
-        <Text style={styles.orderVendor}>{order?.vendor}</Text>
-        <Text style={styles.orderAmount}>{order?.total_amount}</Text>
-        <View style={styles.orderMeta}>
-          <Text style={styles.orderDate}>{order?.timestamp}</Text>
-          <Text style={styles.dot}> • </Text>
-          <Text
-            style={[styles.orderStatus, { color: statusColor(order?.status) }]}
-          >
-            {order?.status}
-          </Text>
+        <View style={styles.orderRow}>
+          <Text style={styles.orderVendor}>{order?.vendor_name ?? order?.vendor}</Text>
+          <Text style={[styles.orderStatus, { color: statusColor(order?.status) }]}>{order?.status}</Text>
         </View>
+        {order?.items?.slice(0, 2).map((item, i) => (
+          <Text key={i} style={styles.orderItem} numberOfLines={1}>
+            {item.quantity}x {item.name}
+          </Text>
+        ))}
+        {order?.items?.length > 2 ? (
+          <Text style={styles.orderItemMore}>+{order.items.length - 2} more</Text>
+        ) : null}
+        {order?.total_amount ? (
+          <Text style={styles.orderAmount}>GH₵{order.total_amount}</Text>
+        ) : null}
+        {order?.timestamp ? (
+          <Text style={styles.orderDate}>{new Date(order.timestamp).toLocaleDateString()}</Text>
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -99,20 +118,25 @@ export default function OrdersScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Current Order */}
-        <View>
-          <Text style={styles.sectionLabel}>CURRENT ORDER</Text>
-          <OrderCard order={currentOrder[0]} />
-        </View>
+        {currentOrder.length > 0 ? (
+          <View>
+            <Text style={styles.sectionLabel}>CURRENT ORDER</Text>
+            <OrderCard order={currentOrder[0]} />
+          </View>
+        ) : null}
 
         {/* Past Orders */}
-        <View style={{ marginTop: 8 }}>
+        <View style={{ marginTop: currentOrder.length > 0 ? 8 : 0 }}>
           <Text style={styles.sectionLabel}>PAST ORDERS</Text>
-          <View style={styles.pastList}>
-            {pastOrders.map((order) => (
-              <OrderCard key={order?.order_id} order={order} />
-            ))}
-          </View>
+          {pastOrders.length > 0 ? (
+            <View style={styles.pastList}>
+              {pastOrders.map((order) => (
+                <OrderCard key={order?.order_id} order={order} />
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.emptyText}>No past orders</Text>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -141,25 +165,29 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 14,
-    gap: 12,
+    gap: 14,
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
     shadowRadius: 4,
     elevation: 2,
-    marginBottom: 10,
+    marginBottom: 12,
   },
   orderImage: {
-    width: 76,
-    height: 76,
+    width: 84,
+    height: 84,
     borderRadius: 10,
+    backgroundColor: colors.gray100,
   },
-  orderInfo: { flex: 1, gap: 3 },
-  orderVendor: { fontSize: 15, fontWeight: "600", color: colors.text },
-  orderAmount: { fontSize: 17, fontWeight: "700", color: colors.text },
-  orderMeta: { flexDirection: "row", alignItems: "center" },
-  orderDate: { fontSize: 12, color: colors.gray500 },
+  orderInfo: { flex: 1, gap: 4 },
+  orderRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  orderVendor: { fontSize: 15, fontWeight: "600", color: colors.text, flex: 1, marginRight: 8 },
+  orderItem: { fontSize: 13, color: colors.gray600 },
+  orderItemMore: { fontSize: 12, color: colors.gray400 },
+  orderAmount: { fontSize: 15, fontWeight: "700", color: colors.text },
+  orderDate: { fontSize: 12, color: colors.gray400 },
   dot: { fontSize: 12, color: colors.gray400 },
-  orderStatus: { fontSize: 12, fontWeight: "500" },
+  orderStatus: { fontSize: 12, fontWeight: "600" },
   pastList: { gap: 0 },
+  emptyText: { fontSize: 14, color: colors.gray500, textAlign: "center", paddingVertical: 20 },
 });

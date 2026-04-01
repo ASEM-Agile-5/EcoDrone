@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import VendorCard from "../components/VendorCard";
 import { colors } from "../theme/colors";
@@ -34,9 +34,11 @@ export default function VendorBrowseScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchVendors();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchVendors();
+    }, []),
+  );
 
   const filtered = vendors.filter((v) =>
     v.name?.toLowerCase().includes(search.toLowerCase()),
@@ -86,30 +88,15 @@ export default function VendorBrowseScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* Quick Stats */}
-        <View style={styles.statsCard}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>4</Text>
-            <Text style={styles.statLabel}>Vendors</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>~12 min</Text>
-            <Text style={styles.statLabel}>Avg Delivery</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, styles.ratingValue]}>4.7★</Text>
-            <Text style={styles.statLabel}>Rating</Text>
-          </View>
-        </View>
-
         {/* Vendors */}
         <Text style={styles.sectionTitle}>Available Vendors</Text>
         {filtered.map((vendor) => (
           <VendorCard
             key={vendor.id}
-            {...vendor}
+            name={vendor.name ?? ""}
+            rating={vendor.rating ?? 0}
+            deliveryTime={vendor.eta ?? "~15 min"}
+            imageUrl={vendor.image_url ?? ""}
             onPress={() => navigation.navigate("MenuOrder", { vendor })}
           />
         ))}
@@ -219,6 +206,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     color: colors.text,
+    marginTop: 20,
     marginBottom: 14,
   },
 });

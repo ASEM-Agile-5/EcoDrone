@@ -1,15 +1,17 @@
 from rest_framework import serializers
-from .models import Order, Location
+from django.db.models import Q
+from .models import Location, Order, OrderItem
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Order
+        model = OrderItem
         fields = ['name', 'quantity', 'price']
 
 
 class OrderSerializer(serializers.ModelSerializer):
     vendor_name = serializers.CharField(source='vendor.name', read_only=True)
+    vendor_image_url = serializers.CharField(source='vendor.image_url', read_only=True)
     customer_name = serializers.SerializerMethodField()
     customer_email = serializers.SerializerMethodField()
     items = OrderItemSerializer(many=True, required=False)
@@ -38,24 +40,39 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['order_id', 'user', 'timestamp', 'vendor', 'vendor_name', 'customer_name', 'customer_email', 'location', 'total_amount', 'status', 'assigned_drone', 'image_url', 'items']
-        read_only_fields = ['order_id', 'vendor_name', 'customer_name', 'customer_email', 'status']
+        fields = ['order_id', 'user', 'timestamp', 'vendor', 'vendor_name', 'vendor_image_url', 'customer_name', 'customer_email', 'location', 'total_amount', 'status', 'assigned_drone', 'image_url', 'items']
+        read_only_fields = ['order_id', 'vendor_name', 'vendor_image_url', 'customer_name', 'customer_email', 'status']
         
 class UserOrderSerializer(serializers.ModelSerializer):
     past_orders = serializers.SerializerMethodField()
     current_orders = serializers.SerializerMethodField()
+
+    CURRENT_STATUSES = ("In Progress", "Pending", "Preparing", "In Transit")
+    PAST_STATUSES = ("Completed", "Delivered", "Cancelled", "Failed")
     
     class Meta:
         model = Order
         fields = ['past_orders', 'current_orders']
+
+    def _get_orders_by_status(self, user_id, statuses):
+        if not user_id:
+            return Order.objects.none()
+
+        query = Q()
+        for value in statuses:
+            query |= Q(status__iexact=value)
+
+        return Order.objects.filter(user_id=user_id).filter(query).order_by('-timestamp')
     
     def get_past_orders(self, obj):
-        orders = Order.objects.filter(status='Completed')
+        user_id = self.context.get('user_id')
+        orders = self._get_orders_by_status(user_id, self.PAST_STATUSES)
         serializer = OrderSerializer(orders, many=True)
         return serializer.data
 
     def get_current_orders(self, obj):
-        orders = Order.objects.filter(status='In Progress')
+        user_id = self.context.get('user_id')
+        orders = self._get_orders_by_status(user_id, self.CURRENT_STATUSES)
         serializer = OrderSerializer(orders, many=True)
         return serializer.data
 class OrderRequestSerializer(serializers.ModelSerializer):

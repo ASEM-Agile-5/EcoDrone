@@ -5,11 +5,38 @@ from rest_framework import status
 import jwt
 from django.conf import settings
 from .models import Vendor, Order, Location
-from .serializers import OrderSerializer, OrderStatusSerializer, OrderRequestSerializer, UserOrderSerializer, LocationSerializer
+from .serializers import (
+    AssignDroneSerializer,
+    LocationSerializer,
+    OrderDeliveryUpdateSerializer,
+    OrderRequestSerializer,
+    OrderSerializer,
+    OrderStatusSerializer,
+    UserOrderSerializer,
+)
 from django.contrib.auth import get_user_model
 from . import order_status
 # import requests
 import uuid
+
+
+def normalize_order_status(value):
+    if value is None:
+        return None
+
+    normalized = str(value).strip().lower()
+    status_map = {
+        "completed": order_status.COMPLETED,
+        "delivered": order_status.COMPLETED,
+        "failed": order_status.FAILED,
+        "cancelled": order_status.FAILED,
+        "canceled": order_status.FAILED,
+        "in progress": order_status.IN_PROGRESS,
+        "in transit": order_status.IN_PROGRESS,
+        "preparing": order_status.IN_PROGRESS,
+        "pending": order_status.PENDING,
+    }
+    return status_map.get(normalized)
 
 class OrderView(APIView):
     def get(self, request):
@@ -81,8 +108,8 @@ class OrderByUserView(APIView):
                 return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
             
             orders = Order.objects.filter(user_id=user_id)
-            serializer = UserOrderSerializer(orders, many=False)
-            
+            serializer = UserOrderSerializer(orders.first() or Order(), context={'user_id': user_id})
+
             return Response(serializer.data, status=status.HTTP_200_OK)
         except jwt.ExpiredSignatureError:
             return Response({"error": "Token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -123,28 +150,6 @@ class MenuByVendorView(APIView):
 
 class PlaceOrderView(APIView):
 
-    def get_assigned_drone(self):
-        return "DRONE-001"
-    #     # In a real scenario, this URL would be in settings
-    #     drone_service_url = "http://localhost:8001/api/drones/available/" 
-        
-    #     try:
-    #         # Make the GET request to the external service
-    #         response = requests.get(drone_service_url, timeout=5)
-            
-    #         if response.status_code == 200:
-    #             data = response.json()
-    #             # Assuming the API returns a list and we pick the first one, 
-    #             # or calls /assign endpoint which returns a single drone
-    #             # Adjust key access based on actual response structure
-    #             return data.get('drone_id') 
-    #         else:
-    #             print(f"Error fetching drone: {response.status_code}")
-    #             return None
-    #     except requests.exceptions.RequestException as e:
-    #         print(f"Request failed: {e}")
-    #         return None
-
     def post(self, request):
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
 
@@ -160,18 +165,19 @@ class PlaceOrderView(APIView):
             
             # Generate Order ID
             order_id = str(uuid.uuid4())
-            
-            # Get assigned drone
-            assigned_drone = self.get_assigned_drone()
 
             # Prepare data
             data = request.data.copy()
-            data['assigned_drone'] = assigned_drone
+            data['assigned_drone'] = None
             data['user'] = user_id
 
             serializer = OrderSerializer(data=data)
             if serializer.is_valid():
-                serializer.save(order_id=order_id)
+                serializer.save(
+                    order_id=order_id,
+                    status=order_status.PENDING,
+                    assigned_drone=None,
+                )
                 # You might want to return the drone info specifically or just the full order
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -333,17 +339,11 @@ class SetOrderStatusView(APIView):
                 order = Order.objects.get(order_id=request.data.get('order_id'))
                 update_data = {}
                 requested_status = request.data.get('status')
+                normalized_status = normalize_order_status(requested_status)
                 if requested_status is not None:
-                    if requested_status == "Completed":
-                        update_data["status"] = order_status.COMPLETED
-                    elif requested_status == "Failed":
-                        update_data["status"] = order_status.FAILED
-                    elif requested_status == "In Progress":
-                        update_data["status"] = order_status.IN_PROGRESS
-                    elif requested_status == "Pending":
-                        update_data["status"] = order_status.PENDING
-                    else:
+                    if normalized_status is None:
                         return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+                    update_data["status"] = normalized_status
 
                 if 'assigned_drone' in request.data:
                     update_data["assigned_drone"] = request.data.get('assigned_drone') or None
@@ -427,6 +427,7 @@ class AssignDroneView(APIView):
                     order.status = order_status.DELIVERED
                 else: 
                     return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+                order.status = normalized_status
                 
                 serializer = OrderStatusSerializer(order, data={"status": order.status}, partial=True)
                 if serializer.is_valid():

@@ -16,7 +16,6 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import CustomButton from "../components/CustomButton";
 import { colors } from "../theme/colors";
 import { placeOrderAPI, getUserOrdersAPI } from "services/services";
-import { useUser } from "../context/UserContext";
 
 type NavigationProp = NativeStackNavigationProp<any>;
 type RouteType = RouteProp<
@@ -30,7 +29,6 @@ export default function CheckoutScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteType>();
   const insets = useSafeAreaInsets();
-  const { userId } = useUser();
 
   const vendor = route.params?.vendor || { name: "Akornor" };
   const deliveryLocation = route.params?.deliveryLocation || "CS Lab, Block 7";
@@ -55,6 +53,21 @@ export default function CheckoutScreen() {
   );
   const total = subtotal;
 
+  const goToOrdersTab = () => {
+    const tabNavigation = navigation.getParent() as any;
+    if (tabNavigation) {
+      tabNavigation.navigate("OrdersTab", {
+        screen: "Orders",
+      });
+      return;
+    }
+
+    (navigation as any).navigate("Main", {
+      screen: "OrdersTab",
+      params: { screen: "Orders" },
+    });
+  };
+
   if (orderPlaced) {
     return (
       <View style={styles.successContainer}>
@@ -68,20 +81,7 @@ export default function CheckoutScreen() {
             prepared.
           </Text>
           <CustomButton
-            onPress={() =>
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: "Main",
-                    params: {
-                      screen: "OrdersTab",
-                      params: { screen: "Orders" },
-                    },
-                  },
-                ],
-              })
-            }
+            onPress={goToOrdersTab}
             fullWidth
           >
             Track Order
@@ -324,11 +324,15 @@ export default function CheckoutScreen() {
               }
 
               await placeOrderAPI({
-                user: userId,
                 vendor: vendor.id,
                 timestamp: new Date().toISOString(),
                 location: deliveryLocation,
                 total_amount: total,
+                items: cartItems.map((item: any) => ({
+                  name: item.name,
+                  quantity: item.quantity,
+                  price: item.price,
+                })),
               });
               Alert.alert(
                 "Success",
@@ -380,18 +384,7 @@ export default function CheckoutScreen() {
               <CustomButton
                 onPress={() => {
                   setShowCurrentOrderModal(false);
-                  navigation.reset({
-                    index: 0,
-                    routes: [
-                      {
-                        name: "Main",
-                        params: {
-                          screen: "OrdersTab",
-                          params: { screen: "Orders" },
-                        },
-                      },
-                    ],
-                  });
+                  goToOrdersTab();
                 }}
                 fullWidth
               >
