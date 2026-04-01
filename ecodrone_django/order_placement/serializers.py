@@ -47,7 +47,7 @@ class UserOrderSerializer(serializers.ModelSerializer):
     past_orders = serializers.SerializerMethodField()
     current_orders = serializers.SerializerMethodField()
 
-    CURRENT_STATUSES = ("In Progress", "Pending", "Preparing", "In Transit")
+    CURRENT_STATUSES = ("In Progress", "Pending", "Preparing", "In Transit", "Dispatched")
     PAST_STATUSES = ("Completed", "Delivered", "Cancelled", "Failed")
     
     class Meta:

@@ -17,7 +17,7 @@ import { getUserOrdersAPI } from "services/services";
 type NavigationProp = NativeStackNavigationProp<any>;
 
 function isTrackingStatus(status: Order["status"]) {
-  return ["Pending", "Preparing", "In Progress", "In Transit"].some(
+  return ["Pending", "Dispatched", "Preparing", "In Progress", "In Transit"].some(
     (value) => value.toLowerCase() === status?.toLowerCase(),
   );
 }
@@ -25,6 +25,7 @@ function isTrackingStatus(status: Order["status"]) {
 function statusColor(status: Order["status"]) {
   switch (status?.toLowerCase()) {
     case "pending":
+    case "dispatched":
     case "in transit":
     case "preparing":
     case "in progress":
