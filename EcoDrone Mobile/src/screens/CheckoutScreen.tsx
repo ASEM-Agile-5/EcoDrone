@@ -53,6 +53,21 @@ export default function CheckoutScreen() {
   );
   const total = subtotal;
 
+  const goToOrdersTab = () => {
+    const tabNavigation = navigation.getParent() as any;
+    if (tabNavigation) {
+      tabNavigation.navigate("OrdersTab", {
+        screen: "Orders",
+      });
+      return;
+    }
+
+    (navigation as any).navigate("Main", {
+      screen: "OrdersTab",
+      params: { screen: "Orders" },
+    });
+  };
+
   if (orderPlaced) {
     return (
       <View style={styles.successContainer}>
@@ -66,20 +81,7 @@ export default function CheckoutScreen() {
             prepared.
           </Text>
           <CustomButton
-            onPress={() =>
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: "Main",
-                    params: {
-                      screen: "OrdersTab",
-                      params: { screen: "Orders" },
-                    },
-                  },
-                ],
-              })
-            }
+            onPress={goToOrdersTab}
             fullWidth
           >
             Track Order
@@ -382,18 +384,7 @@ export default function CheckoutScreen() {
               <CustomButton
                 onPress={() => {
                   setShowCurrentOrderModal(false);
-                  navigation.reset({
-                    index: 0,
-                    routes: [
-                      {
-                        name: "Main",
-                        params: {
-                          screen: "OrdersTab",
-                          params: { screen: "Orders" },
-                        },
-                      },
-                    ],
-                  });
+                  goToOrdersTab();
                 }}
                 fullWidth
               >
