@@ -66,6 +66,7 @@ export function VendorsPage() {
   const [newVendorActive, setNewVendorActive] = useState(true);
   const [addError, setAddError] = useState("");
   const [addLoading, setAddLoading] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
 
   const [editingVendor, setEditingVendor] = useState<DisplayVendor | null>(null);
   const [editVendorName, setEditVendorName] = useState("");
@@ -129,6 +130,7 @@ export function VendorsPage() {
       return;
     }
     setEditError("");
+    setEditLoading(true);
     try {
       await editVendorsAPI(String(editingVendor.numericId), {
         name: editVendorName,
@@ -142,6 +144,8 @@ export function VendorsPage() {
       await fetchVendors();
     } catch {
       setEditError("Failed to update vendor. Please try again.");
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -323,8 +327,8 @@ export function VendorsPage() {
               <Switch id="edit-vendor-status" checked={editVendorActive} onCheckedChange={setEditVendorActive} />
             </div>
             {editError && <p className="text-sm text-red-600">{editError}</p>}
-            <Button onClick={handleEditVendor} className="w-full bg-[#8A1538] hover:bg-[#6d1029] text-white">
-              Update Vendor
+            <Button onClick={handleEditVendor} disabled={editLoading} className="w-full bg-[#8A1538] hover:bg-[#6d1029] text-white disabled:opacity-50 disabled:cursor-not-allowed">
+              {editLoading ? "Updating..." : "Update Vendor"}
             </Button>
           </div>
         </DialogContent>
