@@ -34,6 +34,7 @@ interface Order {
   status: string;
   assigned_drone: string;
   timestamp: string;
+  timestampRaw: string;
   totalAmount: number;
   items: DeliveryItem[];
   customerName: string;
@@ -87,6 +88,7 @@ const mapApiOrder = (order: any): Order => ({
   status: normalizeStatus(order.status),
   assigned_drone: order.assigned_drone ?? "Unassigned",
   timestamp: order.timestamp ? new Date(order.timestamp).toLocaleString() : "-",
+  timestampRaw: order.timestamp ?? "",
   totalAmount: Number(order.total_amount ?? 0),
   items: Array.isArray(order.items) ? order.items : [],
   customerName: order.customer_name ?? "-",
@@ -139,15 +141,21 @@ export function DeliveriesPage() {
     fetchDrones();
   }, []);
 
-  const filteredDeliveries = deliveries.filter((delivery) => {
-    const matchesStatus =
-      statusFilter === "all" || delivery.status === statusFilter;
-    const matchesSearch =
-      delivery.order_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      String(delivery.vendor).toLowerCase().includes(searchQuery.toLowerCase()) ||
-      delivery.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
+  const filteredDeliveries = deliveries
+    .filter((delivery) => {
+      const matchesStatus =
+        statusFilter === "all" || delivery.status === statusFilter;
+      const matchesSearch =
+        delivery.order_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        String(delivery.vendor).toLowerCase().includes(searchQuery.toLowerCase()) ||
+        delivery.location.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesStatus && matchesSearch;
+    })
+    .sort((a, b) => {
+      const aTime = a.timestampRaw ? new Date(a.timestampRaw).getTime() : 0;
+      const bTime = b.timestampRaw ? new Date(b.timestampRaw).getTime() : 0;
+      return bTime - aTime;
+    });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -451,9 +459,14 @@ export function DeliveriesPage() {
                         <Eye className="w-4 h-4" />
                       </Button>
                       <Button
-                        className="bg-[#8A1538] hover:bg-[#6d1029] text-white"
+                        className="bg-[#8A1538] hover:bg-[#6d1029] text-white disabled:bg-gray-300 disabled:text-gray-500"
                         onClick={() => navigate("/dashboard/flight-control")}
-                        title="Flight Control"
+                        title={
+                          delivery.status === "In Progress"
+                            ? "Flight Control"
+                            : "Flight Control is only available for in-progress deliveries"
+                        }
+                        disabled={delivery.status !== "In Progress"}
                       >
                         <Plane className="w-4 h-4" />
                       </Button>
