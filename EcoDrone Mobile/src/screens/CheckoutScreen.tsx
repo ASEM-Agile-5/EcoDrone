@@ -16,7 +16,6 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import CustomButton from "../components/CustomButton";
 import { colors } from "../theme/colors";
 import { placeOrderAPI, getUserOrdersAPI } from "services/services";
-import { useUser } from "../context/UserContext";
 
 type NavigationProp = NativeStackNavigationProp<any>;
 type RouteType = RouteProp<
@@ -30,7 +29,6 @@ export default function CheckoutScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<RouteType>();
   const insets = useSafeAreaInsets();
-  const { userId } = useUser();
 
   const vendor = route.params?.vendor || { name: "Akornor" };
   const deliveryLocation = route.params?.deliveryLocation || "CS Lab, Block 7";
@@ -324,7 +322,6 @@ export default function CheckoutScreen() {
               }
 
               await placeOrderAPI({
-                user: userId,
                 vendor: vendor.id,
                 timestamp: new Date().toISOString(),
                 location: deliveryLocation,

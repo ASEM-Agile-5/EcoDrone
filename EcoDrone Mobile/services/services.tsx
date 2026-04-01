@@ -1,12 +1,24 @@
 "use client";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MenuItem, Vendor } from "../models/vendors";
 
 const api = axios.create({
-  // baseURL: "https://ecodrone-backend-dev-lwunguolhq-uc.a.run.app/",
-  baseURL: "http://localhost:8000/",
-  withCredentials: true,
+  baseURL: "https://ecodrone-backend-dev-lwunguolhq-uc.a.run.app/",
+  // baseURL: "http://localhost:8000/",
 });
+
+api.interceptors.request.use(async (config) => {
+  const token = await AsyncStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+export const clearAuthToken = async () => {
+  await AsyncStorage.removeItem("token");
+};
 
 export const getDashboardStatsAPI = async () => {
   try {
@@ -233,10 +245,6 @@ export const updateOrderDeliveryAPI = async (order: {
 };
 
 export const getProjectsDetailsAPI = async (id: string) => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("Token is not present");
-  }
   try {
     console.log(id);
 
@@ -268,11 +276,10 @@ export const getUserOrdersAPI = async () => {
 };
 
 export const placeOrderAPI = async (payload: {
-  user: string;
   vendor: number;
   timestamp: string;
   location: string;
-  amount_paid: number;
+  total_amount: number;
 }) => {
   try {
     const response = await api.post("order/place-order", payload);
@@ -293,6 +300,11 @@ export const loginAPI = async (email: string, password: string) => {
       password: password,
     });
 
+    const token = response.data?.token;
+    if (token) {
+      await AsyncStorage.setItem("token", token);
+    }
+
     return response;
   } catch (error: any) {
     console.error(error);
@@ -301,4 +313,17 @@ export const loginAPI = async (email: string, password: string) => {
     }
     throw error;
   }
+};
+
+export const signUpAPI = async (data: {
+  email: string;
+  password: string;
+  password_confirm: string;
+  first_name: string;
+  last_name: string;
+  username: string;
+  terms_accepted: boolean;
+}) => {
+  const response = await api.post("user/register", data);
+  return response;
 };

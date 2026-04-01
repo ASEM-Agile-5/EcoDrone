@@ -1,7 +1,8 @@
 export type Order ={
     order_id:string
     timestamp: string,
-    vendor: string,
+    vendor: string | number,
+    vendor_name?: string,
     location: string,
     total_amount: number,
     delivery_fee: number,
@@ -11,6 +12,7 @@ export type Order ={
     items: Array<{ name: string; quantity: number; price: number }>,
     status: string,
     image_url?: string,
+    vendor_image_url?: string,
     assigned_drone: string | null
 }
 

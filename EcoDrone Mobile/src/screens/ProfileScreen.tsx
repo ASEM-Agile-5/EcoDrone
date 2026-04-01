@@ -12,6 +12,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useUser } from "../context/UserContext";
 import { colors } from "../theme/colors";
+import { clearAuthToken } from "services/services";
 
 type NavigationProp = NativeStackNavigationProp<any>;
 
@@ -70,7 +71,8 @@ export default function ProfileScreen() {
   //   }
   // }, [loading, user]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await clearAuthToken();
     navigation.reset({ index: 0, routes: [{ name: "Login" }] });
   };
 

@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.db.models import Q
 from .models import Order, Location
 
 
@@ -45,20 +46,33 @@ class OrderSerializer(serializers.ModelSerializer):
 class UserOrderSerializer(serializers.ModelSerializer):
     past_orders = serializers.SerializerMethodField()
     current_orders = serializers.SerializerMethodField()
+
+    CURRENT_STATUSES = ("In Progress", "Pending", "Preparing", "In Transit")
+    PAST_STATUSES = ("Completed", "Delivered", "Cancelled", "Failed")
     
     class Meta:
         model = Order
         fields = ['past_orders', 'current_orders']
+
+    def _get_orders_by_status(self, user_id, statuses):
+        if not user_id:
+            return Order.objects.none()
+
+        query = Q()
+        for value in statuses:
+            query |= Q(status__iexact=value)
+
+        return Order.objects.filter(user_id=user_id).filter(query).order_by('-timestamp')
     
     def get_past_orders(self, obj):
         user_id = self.context.get('user_id')
-        orders = Order.objects.filter(user_id=user_id, status__iexact='Completed')
+        orders = self._get_orders_by_status(user_id, self.PAST_STATUSES)
         serializer = OrderSerializer(orders, many=True)
         return serializer.data
 
     def get_current_orders(self, obj):
         user_id = self.context.get('user_id')
-        orders = Order.objects.filter(user_id=user_id, status__iexact='In Progress')
+        orders = self._get_orders_by_status(user_id, self.CURRENT_STATUSES)
         serializer = OrderSerializer(orders, many=True)
         return serializer.data
 class OrderRequestSerializer(serializers.ModelSerializer):

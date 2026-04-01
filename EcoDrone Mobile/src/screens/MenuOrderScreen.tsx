@@ -228,52 +228,60 @@ export default function MenuOrderScreen() {
         {/* Menu */}
         <View style={styles.menuSection}>
           <Text style={styles.sectionTitle}>Menu</Text>
-          {menuItems.map((item) => (
-            <View key={item.id} style={styles.menuCard}>
-              <Image
-                source={{ uri: item.image_url }}
-                style={styles.menuImage}
-                resizeMode="cover"
-              />
-              <View style={styles.menuInfo}>
-                <Text style={styles.menuName}>{item.name}</Text>
-                <Text style={styles.menuDesc} numberOfLines={2}>
-                  {item.description}
-                </Text>
-                <View style={styles.menuBottom}>
-                  <Text style={styles.menuPrice}>GH₵{item.price}</Text>
-                  {cart[item.id] ? (
-                    <View style={styles.qtyControl}>
+          {menuItems.map((item) => {
+            if (item.id == null) {
+              return null;
+            }
+
+            const itemId = item.id;
+
+            return (
+              <View key={itemId} style={styles.menuCard}>
+                <Image
+                  source={{ uri: item.image_url }}
+                  style={styles.menuImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.menuInfo}>
+                  <Text style={styles.menuName}>{item.name}</Text>
+                  <Text style={styles.menuDesc} numberOfLines={2}>
+                    {item.description}
+                  </Text>
+                  <View style={styles.menuBottom}>
+                    <Text style={styles.menuPrice}>GH₵{item.price}</Text>
+                    {cart[itemId] ? (
+                      <View style={styles.qtyControl}>
+                        <TouchableOpacity
+                          style={styles.qtyBtn}
+                          onPress={() => removeFromCart(itemId)}
+                        >
+                          <Ionicons
+                            name="remove"
+                            size={16}
+                            color={colors.primary}
+                          />
+                        </TouchableOpacity>
+                        <Text style={styles.qtyText}>{cart[itemId]}</Text>
+                        <TouchableOpacity
+                          style={styles.qtyBtn}
+                          onPress={() => addToCart(itemId)}
+                        >
+                          <Ionicons name="add" size={16} color={colors.primary} />
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
                       <TouchableOpacity
-                        style={styles.qtyBtn}
-                        onPress={() => removeFromCart(item.id)}
+                        style={styles.addBtn}
+                        onPress={() => addToCart(itemId)}
                       >
-                        <Ionicons
-                          name="remove"
-                          size={16}
-                          color={colors.primary}
-                        />
+                        <Text style={styles.addBtnText}>Add to Cart</Text>
                       </TouchableOpacity>
-                      <Text style={styles.qtyText}>{cart[item.id]}</Text>
-                      <TouchableOpacity
-                        style={styles.qtyBtn}
-                        onPress={() => addToCart(item.id)}
-                      >
-                        <Ionicons name="add" size={16} color={colors.primary} />
-                      </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <TouchableOpacity
-                      style={styles.addBtn}
-                      onPress={() => addToCart(item.id)}
-                    >
-                      <Text style={styles.addBtnText}>Add to Cart</Text>
-                    </TouchableOpacity>
-                  )}
+                    )}
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </ScrollView>
 

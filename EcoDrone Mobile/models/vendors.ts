@@ -11,6 +11,8 @@ export interface Vendor {
   owner_contact?: string;
   terms_agreed_at?: string;
   image_url?: string;
+  rating?: number;
+  eta?: string;
 }
 export interface MenuItem {
   id?: number;
