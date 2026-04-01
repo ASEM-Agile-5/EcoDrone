@@ -10,4 +10,7 @@ COMPLETED = "Completed"
 FAILED = "Failed"
 IN_PROGRESS = "In Progress"
 PENDING = "Pending"
+DISPATCHED = "Dispatched"
+DELIVERED = "Delivered"
+
 

@@ -421,13 +421,17 @@ class AssignDroneView(APIView):
                     order.status = order_status.IN_PROGRESS
                 elif request.data.get('status') == "Pending":
                     order.status = order_status.PENDING
+                elif request.data.get('status') == "Dispatched":
+                    order.status = order_status.DISPATCHED
+                elif request.data.get('status') == "Delivered":
+                    order.status = order_status.DELIVERED
                 else: 
                     return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
                 
-                serializer = AssignDroneSerializer(order, data={"assigned_drone": request.data.get('assigned_drone')}, partial=True)
+                serializer = OrderStatusSerializer(order, data={"status": order.status}, partial=True)
                 if serializer.is_valid():
                     serializer.save()
-                    return Response({"message": "Drone assigned successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+                    return Response({"message": "Order status updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             except Order.DoesNotExist:
