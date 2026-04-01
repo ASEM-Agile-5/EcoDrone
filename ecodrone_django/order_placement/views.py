@@ -81,8 +81,8 @@ class OrderByUserView(APIView):
                 return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
             
             orders = Order.objects.filter(user_id=user_id)
-            serializer = UserOrderSerializer(orders, many=False)
-            
+            serializer = UserOrderSerializer(orders.first() or Order(), context={'user_id': user_id})
+
             return Response(serializer.data, status=status.HTTP_200_OK)
         except jwt.ExpiredSignatureError:
             return Response({"error": "Token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
