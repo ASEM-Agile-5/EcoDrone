@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { BASE_ZOOM, TILE_SIZE } from '../constants';
+import { BASE_ZOOM, CENTER_LAT, CENTER_LON, TILE_SIZE } from '../constants';
 
 export function latLonToWorldPx(lat: number, lon: number) {
   const sinLat = Math.sin((lat * Math.PI) / 180);
@@ -11,12 +11,8 @@ export function latLonToWorldPx(lat: number, lon: number) {
   return { x, y };
 }
 
-export function useMapEngine(
-  center: { lat: number; lon: number },
-  zoom: number,
-  pan: { x: number; y: number }
-) {
-  const centerPx = useMemo(() => latLonToWorldPx(center.lat, center.lon), [center.lat, center.lon]);
+export function useMapEngine(zoom: number, pan: { x: number; y: number }) {
+  const centerPx = useMemo(() => latLonToWorldPx(CENTER_LAT, CENTER_LON), []);
 
   const project = useMemo(
     () => (lat: number, lon: number) => {
