@@ -221,18 +221,18 @@ export function DeliveriesPage() {
 
         const updatedOrder = response?.data ?? {};
         const nextStatus = normalizeStatus(updatedOrder.status ?? editStatus);
-        const nextDrone = updatedOrder.assigned_drone ?? (editDrone || "Unassigned");
+        const updatedDrone = updatedOrder.assigned_drone ?? (editDrone || "Unassigned");
 
         setDeliveries((currentDeliveries) =>
           currentDeliveries.map((delivery) =>
             delivery.order_id === editingOrder.order_id
-              ? { ...delivery, status: nextStatus, assigned_drone: nextDrone }
+              ? { ...delivery, status: nextStatus, assigned_drone: updatedDrone }
               : delivery,
           ),
         );
         setViewingOrder((currentViewingOrder) =>
           currentViewingOrder?.order_id === editingOrder.order_id
-            ? { ...currentViewingOrder, status: nextStatus, assigned_drone: nextDrone }
+            ? { ...currentViewingOrder, status: nextStatus, assigned_drone: updatedDrone }
             : currentViewingOrder,
         );
         setEditingOrder(null);
