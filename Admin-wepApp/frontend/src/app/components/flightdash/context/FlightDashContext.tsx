@@ -55,7 +55,7 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
   const [droneBatt, setDroneBatt] = useState(98);
   const [videoActive, setVideoActive] = useState(false);
   const [ecoData, setEcoData] = useState({ temp: 28.5, hum: 65, co2: 415 });
-  const [zoom, setZoom] = useState(2.0);
+  const [zoom, setZoom] = useState(1.5);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const isDraggingRef = useRef(false);
   const dragPointerRef = useRef({ x: 0, y: 0 });
@@ -194,7 +194,7 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
   };
 
   const centerMap = () => {
-    setZoom(2.0);
+    setZoom(1.5);
     setPan({ x: 0, y: 0 });
   };
 
