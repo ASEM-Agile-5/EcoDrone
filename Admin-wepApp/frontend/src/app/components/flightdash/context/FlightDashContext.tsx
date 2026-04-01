@@ -45,17 +45,6 @@ interface FlightDashContextValue {
 
 const FlightDashContext = createContext<FlightDashContextValue | null>(null);
 
-const FLIGHT_QUEUE_STATUSES = new Set(['pending', 'dispatched', 'in progress']);
-
-function normalizeFlightOrderStatus(value: unknown) {
-  const normalized = String(value ?? '').trim().toLowerCase();
-
-  if (normalized === 'dispatched') return 'dispatched';
-  if (normalized === 'in progress') return 'active';
-  if (normalized === 'completed' || normalized === 'delivered') return 'completed';
-  return 'pending';
-}
-
 export function FlightDashProvider({ children }: { children: React.ReactNode }) {
   const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleTimeString());
   const [orders, setOrders] = useState<Order[]>([]);
@@ -76,7 +65,7 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
     getOrdersAPI().then((data: any[]) => {
       if (!Array.isArray(data)) return;
       const inProgress = data
-        .filter((o: any) => FLIGHT_QUEUE_STATUSES.has(String(o.status ?? '').trim().toLowerCase()))
+        .filter((o: any) => o.status?.toLowerCase() === 'in progress')
         .map((o: any): Order => ({
           id: String(o.order_id ?? ''),
           vendor: o.vendor_name ?? String(o.vendor ?? ''),
@@ -84,7 +73,7 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
           item: Array.isArray(o.items) && o.items.length > 0
             ? o.items.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')
             : o.item ?? 'Order',
-          status: normalizeFlightOrderStatus(o.status),
+          status: 'pending',
           wpVendor: {
             ...WAYPOINTS.VENDOR_1,
             name:
@@ -216,9 +205,9 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
         status: 'Dispatched',
       });
 
-      setActiveOrder({ ...order, status: 'dispatched' });
+      setActiveOrder(order);
       setMissionState('to_vendor');
-      updateOrderStatus(order.id, 'dispatched');
+      updateOrderStatus(order.id, 'active');
     } catch (error) {
       console.error('Failed to dispatch order', error);
     }
