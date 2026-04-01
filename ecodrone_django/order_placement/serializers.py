@@ -1,11 +1,11 @@
 from rest_framework import serializers
 from django.db.models import Q
-from .models import Order, Location
+from .models import Location, Order, OrderItem
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Order
+        model = OrderItem
         fields = ['name', 'quantity', 'price']
 
 

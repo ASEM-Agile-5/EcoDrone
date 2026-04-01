@@ -280,6 +280,11 @@ export const placeOrderAPI = async (payload: {
   timestamp: string;
   location: string;
   total_amount: number;
+  items: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
 }) => {
   try {
     const response = await api.post("order/place-order", payload);

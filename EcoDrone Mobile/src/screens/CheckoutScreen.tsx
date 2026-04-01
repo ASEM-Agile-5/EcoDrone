@@ -326,6 +326,11 @@ export default function CheckoutScreen() {
                 timestamp: new Date().toISOString(),
                 location: deliveryLocation,
                 total_amount: total,
+                items: cartItems.map((item: any) => ({
+                  name: item.name,
+                  quantity: item.quantity,
+                  price: item.price,
+                })),
               });
               Alert.alert(
                 "Success",
