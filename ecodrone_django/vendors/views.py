@@ -140,9 +140,7 @@ class MenuDetailView(APIView):
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
             user_id = payload['user_id']
-            user = User.objects.get(id=user_id)
-            if not user.is_superuser:
-                return Response({"error": "Only superusers can register vendors"}, status=status.HTTP_403_FORBIDDEN)
+            User.objects.get(id=user_id)
 
             menus = Menu.objects.filter(vendor_id=vendor_id).select_related('category')
             serializer = MenuSerializer(menus, many=True)
