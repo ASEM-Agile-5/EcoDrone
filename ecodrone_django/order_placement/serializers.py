@@ -1,10 +1,10 @@
 from rest_framework import serializers
-from .models import Order
+from .models import Order, Location
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OrderItem
+        model = Order
         fields = ['name', 'quantity', 'price']
 
 

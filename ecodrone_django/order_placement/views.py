@@ -4,18 +4,12 @@ from rest_framework.response import Response
 from rest_framework import status
 import jwt
 from django.conf import settings
-<<<<<<< HEAD
 from .models import Vendor, Order, Location
 from .serializers import OrderSerializer, OrderStatusSerializer, OrderRequestSerializer, UserOrderSerializer, LocationSerializer
-=======
-from .models import Vendor, Order
-from .serializers import OrderSerializer, OrderStatusSerializer, OrderRequestSerializer, UserOrderSerializer, OrderDeliveryUpdateSerializer
->>>>>>> refs/remotes/origin/dev
 from django.contrib.auth import get_user_model
 from . import order_status
 # import requests
 import uuid
-
 
 class OrderView(APIView):
     def get(self, request):
@@ -38,7 +32,7 @@ class OrderView(APIView):
                 if not user.is_superuser:
                     return Response({"error": "Only superusers can access this endpoint"}, status=status.HTTP_403_FORBIDDEN)
                 
-                orders = Order.objects.select_related('vendor', 'user', 'user__accounts').prefetch_related('items').all()
+                orders = Order.objects.all()
                 serializer = OrderSerializer(orders, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             except User.DoesNotExist:
@@ -78,7 +72,7 @@ class OrderByUserView(APIView):
 
         if not token:
             return Response({"error": "Token not found"}, status=status.HTTP_401_UNAUTHORIZED)
-
+        
         try:
             # Verify token
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
@@ -94,7 +88,6 @@ class OrderByUserView(APIView):
             return Response({"error": "Token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
         except jwt.InvalidTokenError:
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
-
 class MenuByVendorView(APIView):
     def get(self, request):
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
@@ -173,6 +166,7 @@ class PlaceOrderView(APIView):
             # Prepare data
             data = request.data.copy()
             data['assigned_drone'] = assigned_drone
+            data['user'] = user_id
 
             serializer = OrderSerializer(data=data)
             if serializer.is_valid():
@@ -204,7 +198,7 @@ class OrderDetailsView(APIView):
             if not order_id:
                 return Response({"error": "order_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-            order = Order.objects.select_related('vendor', 'user', 'user__accounts').prefetch_related('items').get(order_id=order_id)
+            order = Order.objects.get(order_id=order_id)
             serializer = OrderSerializer(order)
             return Response(serializer.data, status=status.HTTP_200_OK)
             
@@ -216,7 +210,6 @@ class OrderDetailsView(APIView):
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
         except jwt.InvalidTokenError:
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
-
 
 class OrderByStatusView(APIView):
     def get(self, request):
@@ -248,8 +241,8 @@ class OrderByStatusView(APIView):
         except jwt.InvalidTokenError:
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
 
-class LocationListView(APIView):
-    def get(self, request):
+class SetOrderStatusView(APIView):
+    def post(self, request):
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
 
         if not token:
@@ -258,23 +251,42 @@ class LocationListView(APIView):
         try:
             payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
             user_id = payload['user_id']
-            if not user_id:
-                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            User = get_user_model()
+            user = User.objects.get(id=user_id)
+
+            if not user.is_superuser:
+                return Response({"error": "Only superusers can view/update drone status"}, status=status.HTTP_403_FORBIDDEN)
             
-            locations = Location.objects.all()
-            serializer = LocationSerializer(locations, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            try:
+                order = Order.objects.get(order_id=request.data.get('order_id'))
+                if request.data.get('status') == "Completed":
+                    order.status = order_status.COMPLETED
+                elif request.data.get('status') == "Failed":
+                    order.status = order_status.FAILED
+                elif request.data.get('status') == "In Progress":
+                    order.status = order_status.IN_PROGRESS
+                elif request.data.get('status') == "Pending":
+                    order.status = order_status.PENDING
+                else: 
+                    return Response({"error": "Invalid status"}, status=status.HTTP_400_BAD_REQUEST)
+                
+                serializer = OrderStatusSerializer(order, data={"status": order.status}, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response({"message": "Order status updated successfully", "data": serializer.data}, status=status.HTTP_200_OK)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+            except Order.DoesNotExist:
+                return Response({"error": "Order not found"}, status=status.HTTP_404_NOT_FOUND)
+
             
-        except Location.DoesNotExist:
-            return Response({"error": "Location not found"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
         except jwt.ExpiredSignatureError:
             return Response({"error": "Token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
         except jwt.InvalidTokenError:
             return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
-        except jwt.InvalidTokenError:
-            return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
-
-
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)           
+  
 class RegisterLocationView(APIView):
     def post(self, request):
         token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
@@ -355,3 +367,30 @@ class SetOrderStatusView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)           
   
+
+class LocationListView(APIView):
+    def get(self, request):
+        token = request.headers.get('Authorization', '').split('Bearer ')[-1] or request.COOKIES.get('access_token')
+
+        if not token:
+            return Response({"error": "Token not found"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            user_id = payload['user_id']
+            if not user_id:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            locations = Location.objects.all()
+            serializer = LocationSerializer(locations, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+            
+        except Location.DoesNotExist:
+            return Response({"error": "Location not found"}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Token has expired"}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid token"}, status=status.HTTP_401_UNAUTHORIZED)
+
