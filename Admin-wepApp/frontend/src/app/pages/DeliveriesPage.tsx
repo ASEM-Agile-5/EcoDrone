@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Search, Filter, Download, Edit, Eye, X } from "lucide-react";
+import { Search, Filter, Download, Edit, Eye, X, Plane } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { Button } from "../components/ui/button";
 import {
@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import React from "react";
+import { useNavigate } from "react-router";
 import { getOrderDetailsAPI, getOrdersAPI, getDronesAPI, updateOrderDeliveryAPI } from "../services/services";
 
 interface DeliveryItem {
@@ -70,6 +71,7 @@ const mapApiOrder = (order: any): Order => ({
 });
 
 export function DeliveriesPage() {
+  const navigate = useNavigate();
   const [deliveries, setDeliveries] = useState<Order[]>([]);
   const [availableDrones, setAvailableDrones] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -390,6 +392,13 @@ export function DeliveriesPage() {
                         title="View details"
                       >
                         <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        className="bg-[#8A1538] hover:bg-[#6d1029] text-white"
+                        onClick={() => navigate("/dashboard/flight-control")}
+                        title="Flight Control"
+                      >
+                        <Plane className="w-4 h-4" />
                       </Button>
                     </div>
                   )}
