@@ -1,4 +1,5 @@
-import { MapPin, Thermometer, Wind, AlertTriangle } from "lucide-react";
+import { Thermometer, Wind, AlertTriangle } from "lucide-react";
+import { AshesiCampusMap } from "../components/AshesiCampusMap";
 import React from "react";
 import {
   LineChart,
@@ -105,43 +106,7 @@ export function EnvironmentalPage() {
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
         <h3 className="text-xl mb-4" style={{ color: '#8A1538' }}>Campus Drone Map</h3>
 
-        {/* Mock Map */}
-        <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ height: '400px' }}>
-          {/* Map Background */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center p-8">
-              <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-500">Ashesi University Campus</p>
-              <p className="text-xs text-gray-400 mt-1">Real-time drone positioning</p>
-            </div>
-          </div>
-
-          {/* Drone Markers */}
-          {droneLocations.map((drone, index) => (
-            <div
-              key={drone.id}
-              className="absolute"
-              style={{
-                left: `${20 + index * 20}%`,
-                top: `${30 + index * 15}%`,
-              }}
-            >
-              <div className="relative group cursor-pointer">
-                <div className={`w-4 h-4 rounded-full ${drone.status === 'Safe' ? 'bg-green-500' : 'bg-amber-500'
-                  } animate-pulse`} />
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                  <div className="bg-gray-900 text-white text-xs px-3 py-2 rounded-lg whitespace-nowrap">
-                    <div className="font-mono">{drone.id}</div>
-                    <div className="text-gray-300">{drone.location}</div>
-                    <div className={drone.status === 'Safe' ? 'text-green-400' : 'text-amber-400'}>
-                      {drone.status}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <AshesiCampusMap markers={droneLocations} height={400} />
 
         {/* Legend */}
         <div className="mt-4 flex items-center gap-6 text-sm">

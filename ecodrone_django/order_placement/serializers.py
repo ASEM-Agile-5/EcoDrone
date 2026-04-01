@@ -74,3 +74,9 @@ class LocationSerializer(serializers.ModelSerializer):
         model = Location
         fields = ['id', 'latitude', 'longitude', 'name', 'description']
         read_only_fields = ['id']
+
+class OrderDeliveryUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['order_id', 'status', 'assigned_drone']
+        read_only_fields = ['order_id']

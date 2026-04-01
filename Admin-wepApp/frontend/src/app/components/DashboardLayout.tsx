@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Radio,
+  Plane,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -26,6 +27,7 @@ const navigation = [
   { name: "Deliveries", href: "/dashboard/deliveries", icon: Package },
   { name: "Drones", href: "/dashboard/drones", icon: Radio },
   { name: "Vendors", href: "/dashboard/vendors", icon: Store },
+  { name: "Flight Control", href: "/dashboard/flight-control", icon: Plane },
   {
     name: "Environmental Monitoring",
     href: "/dashboard/environmental",
