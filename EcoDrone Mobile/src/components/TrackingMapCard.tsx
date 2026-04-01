@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Svg, {
   Circle,
@@ -72,26 +72,40 @@ function project(point: Point, centerPx: { x: number; y: number }) {
   };
 }
 
+function interpolatePoint(
+  start: Point,
+  end: Point,
+  progress: number,
+  name: string,
+): Point {
+  return {
+    lat: start.lat + (end.lat - start.lat) * progress,
+    lon: start.lon + (end.lon - start.lon) * progress,
+    name,
+  };
+}
+
 function getDronePoint(
   base: Point,
   vendor: Point,
   buyer: Point,
   status: string,
+  routeProgress: number,
   assignedDrone?: string | null,
 ): Point {
   const normalized = status?.toLowerCase() ?? "";
+  const droneName = assignedDrone || "Drone";
   if (["completed", "delivered"].includes(normalized)) {
     return buyer;
   }
   if (["preparing", "in progress"].includes(normalized)) {
     return vendor;
   }
+  if (normalized === "dispatched") {
+    return interpolatePoint(vendor, buyer, routeProgress, droneName);
+  }
   if (normalized === "in transit") {
-    return {
-      lat: (vendor.lat + buyer.lat) / 2,
-      lon: (vendor.lon + buyer.lon) / 2,
-      name: assignedDrone || "Drone",
-    };
+    return interpolatePoint(vendor, buyer, routeProgress, droneName);
   }
   if (normalized === "pending" && assignedDrone) {
     return base;
@@ -110,6 +124,9 @@ function getStageLabel(status: string, assignedDrone?: string | null) {
   if (["preparing", "in progress"].includes(normalized)) {
     return "Preparing";
   }
+  if (normalized === "dispatched") {
+    return "Drone dispatched";
+  }
   if (normalized === "in transit") {
     return "En route";
   }
@@ -126,19 +143,65 @@ export default function TrackingMapCard({
   status,
   assignedDrone,
 }: Props) {
+  const normalizedStatus = status?.toLowerCase() ?? "";
+  const [routeProgress, setRouteProgress] = useState(0);
   const { base, vendor, buyer } = resolvePoints(
     vendorName,
     locationName,
     locationCoords,
   );
+
+  useEffect(() => {
+    if (normalizedStatus === "dispatched") {
+      setRouteProgress(0);
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 0.03;
+        if (progress > 1) {
+          progress = 0;
+        }
+        setRouteProgress(progress);
+      }, 180);
+
+      return () => clearInterval(interval);
+    }
+
+    if (normalizedStatus === "in transit") {
+      setRouteProgress(0.45);
+      let progress = 0.45;
+      const interval = setInterval(() => {
+        progress += 0.025;
+        if (progress > 1) {
+          progress = 0.45;
+        }
+        setRouteProgress(progress);
+      }, 180);
+
+      return () => clearInterval(interval);
+    }
+
+    if (normalizedStatus === "preparing" || normalizedStatus === "in progress") {
+      setRouteProgress(0);
+      return;
+    }
+
+    if (normalizedStatus === "completed" || normalizedStatus === "delivered") {
+      setRouteProgress(1);
+      return;
+    }
+
+    setRouteProgress(0);
+  }, [normalizedStatus]);
+
   const centerPx = latLonToWorldPx(BASE.lat, BASE.lon);
   const basePos = project(base, centerPx);
   const vendorPos = project(vendor, centerPx);
   const buyerPos = project(buyer, centerPx);
-  const dronePos = project(
-    getDronePoint(base, vendor, buyer, status, assignedDrone),
-    centerPx,
+  const dronePoint = useMemo(
+    () => getDronePoint(base, vendor, buyer, status, routeProgress, assignedDrone),
+    [assignedDrone, base, buyer, routeProgress, status, vendor],
   );
+  const dronePos = project(dronePoint, centerPx);
   const centerTileX = Math.floor(centerPx.x / TILE_SIZE);
   const centerTileY = Math.floor(centerPx.y / TILE_SIZE);
   const tileRadius = 2;

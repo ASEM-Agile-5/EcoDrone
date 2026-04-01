@@ -25,9 +25,11 @@ function getTrackingSteps(order: Order | null) {
   const normalized = order?.status?.toLowerCase() ?? '';
   const hasAssignedDrone = Boolean(order?.assigned_drone);
   const isDelivered = ['delivered', 'completed'].includes(normalized);
-  const isPreparing = ['preparing', 'in progress', 'in transit'].includes(normalized);
-  const pendingAccepted = hasAssignedDrone || isPreparing || isDelivered;
-  const droneAssignedDone = isPreparing || isDelivered;
+  const isPreparing = ['preparing', 'in progress'].includes(normalized);
+  const isDispatched = ['dispatched', 'in transit'].includes(normalized);
+  const pendingAccepted = hasAssignedDrone || isPreparing || isDispatched || isDelivered;
+  const droneAssignedDone = isPreparing || isDispatched || isDelivered;
+  const preparingDone = isDispatched || isDelivered;
 
   return [
     {
@@ -42,8 +44,13 @@ function getTrackingSteps(order: Order | null) {
     },
     {
       label: 'Preparing',
-      completed: isDelivered,
+      completed: preparingDone,
       active: isPreparing,
+    },
+    {
+      label: 'Drone Dispatched',
+      completed: isDispatched || isDelivered,
+      active: false,
     },
     {
       label: 'Delivered',
@@ -150,6 +157,8 @@ export default function OrderTrackingScreen() {
                       ? 'Waiting for acceptance'
                       : order?.assigned_drone && order?.status === 'Pending'
                       ? `Assigned to ${order.assigned_drone}`
+                      : order?.status === 'Dispatched'
+                      ? 'Drone dispatched'
                       : order?.status === 'In Transit'
                       ? 'In transit now'
                       : order?.status === 'Completed' || order?.status === 'Delivered'
