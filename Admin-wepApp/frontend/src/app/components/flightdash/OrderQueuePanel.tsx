@@ -1,4 +1,4 @@
-import { Activity, Home, Package, Play, Store } from 'lucide-react';
+import { Activity, MapPin, Package, Play, Store } from 'lucide-react';
 import { useFlightDash } from './context/FlightDashContext';
 
 export function OrderQueuePanel() {
@@ -39,7 +39,7 @@ export function OrderQueuePanel() {
                 <Store size={12} /> {order.vendor}
               </span>
               <span className="flex items-center gap-1">
-                <Home size={12} /> {order.buyer}
+                <MapPin size={12} /> {order.location}
               </span>
             </div>
 

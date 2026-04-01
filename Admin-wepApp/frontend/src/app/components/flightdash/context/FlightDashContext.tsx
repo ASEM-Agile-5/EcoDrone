@@ -7,12 +7,12 @@ import {
   useState,
 } from 'react';
 import { WAYPOINTS } from '../constants';
-import { initialOrders } from '../data';
+import { getOrdersAPI } from '../../../services/services';
 
 interface Order {
   id: string;
   vendor: string;
-  buyer: string;
+  location: string;
   item: string;
   status: string;
   wpVendor: { lat: number; lon: number };
@@ -47,7 +47,7 @@ const FlightDashContext = createContext<FlightDashContextValue | null>(null);
 
 export function FlightDashProvider({ children }: { children: React.ReactNode }) {
   const [currentTime, setCurrentTime] = useState(() => new Date().toLocaleTimeString());
-  const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [activeOrder, setActiveOrder] = useState<Order | null>(null);
   const [missionState, setMissionState] = useState('idle');
   const [dronePos, setDronePos] = useState<{ lat: number; lon: number }>(WAYPOINTS.BASE);
@@ -61,8 +61,28 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
   const dragPointerRef = useRef({ x: 0, y: 0 });
   const mapRef = useRef<HTMLDivElement | null>(null);
 
+  useEffect(() => {
+    getOrdersAPI().then((data: any[]) => {
+      if (!Array.isArray(data)) return;
+      const inProgress = data
+        .filter((o: any) => o.status?.toLowerCase() === 'in progress')
+        .map((o: any): Order => ({
+          id: String(o.order_id ?? ''),
+          vendor: o.vendor_name ?? String(o.vendor ?? ''),
+          location: o.location ?? '',
+          item: Array.isArray(o.items) && o.items.length > 0
+            ? o.items.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')
+            : o.item ?? 'Order',
+          status: 'pending',
+          wpVendor: WAYPOINTS.BASE,
+          wpBuyer: WAYPOINTS.BASE,
+        }));
+      setOrders(inProgress);
+    });
+  }, []);
+
   const updateOrderStatus = useCallback((id: string, newStatus: string) => {
-    setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o)));
+    setOrders((prev: Order[]) => prev.map((o) => (o.id === id ? { ...o, status: newStatus } : o)));
   }, []);
 
   useEffect(() => {
