@@ -74,8 +74,8 @@ export function FlightDashProvider({ children }: { children: React.ReactNode }) 
             ? o.items.map((i: any) => `${i.quantity}x ${i.name}`).join(', ')
             : o.item ?? 'Order',
           status: 'pending',
-          wpVendor: WAYPOINTS.BASE,
-          wpBuyer: WAYPOINTS.BASE,
+          wpVendor: WAYPOINTS.VENDOR_1,
+          wpBuyer: WAYPOINTS.BUYER_1,
         }));
       setOrders(inProgress);
     });
