@@ -20,7 +20,7 @@ export function LogisticsMap() {
     centerMap,
   } = useFlightDash();
 
-  const { centerPx, project } = useMapEngine(zoom, pan);
+  const { centerPx, project } = useMapEngine(dronePos, zoom, pan);
 
   const renderMapTiles = () => {
     const cx = centerPx.x - pan.x / zoom;
