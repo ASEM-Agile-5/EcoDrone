@@ -1,4 +1,4 @@
-import { Map as MapIcon, MapPin, Maximize, Minus, Navigation, Plus } from 'lucide-react';
+import { Map as MapIcon, MapPin, Maximize, Minus, Plus } from 'lucide-react';
 import { useFlightDash } from './context/FlightDashContext';
 import { useMapEngine } from './hooks/useMapEngine';
 import { BASE_ZOOM, TILE_SIZE } from './constants';
@@ -137,20 +137,18 @@ export function LogisticsMap() {
                     missionState !== 'at_buyer' && (
                       <circle cx="0" cy="0" r={24 * zoom} fill="#8A1538" opacity="0.2" className="animate-ping" />
                     )}
-                  <circle
-                    cx="0"
-                    cy="0"
-                    r={12 * zoom}
-                    fill="#8A1538"
-                    stroke="white"
-                    strokeWidth={2 * zoom}
-                    style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.3))' }}
-                  />
-                  <Navigation
-                    size={14 * zoom}
-                    color="white"
-                    style={{ transform: `translate(-${7 * zoom}px, -${7 * zoom}px) rotate(45deg)` }}
-                  />
+                  {/* Arms */}
+                  <line x1={0} y1={0} x2={10 * zoom} y2={-10 * zoom} stroke="#8A1538" strokeWidth={2.5 * zoom} strokeLinecap="round" />
+                  <line x1={0} y1={0} x2={-10 * zoom} y2={-10 * zoom} stroke="#8A1538" strokeWidth={2.5 * zoom} strokeLinecap="round" />
+                  <line x1={0} y1={0} x2={10 * zoom} y2={10 * zoom} stroke="#8A1538" strokeWidth={2.5 * zoom} strokeLinecap="round" />
+                  <line x1={0} y1={0} x2={-10 * zoom} y2={10 * zoom} stroke="#8A1538" strokeWidth={2.5 * zoom} strokeLinecap="round" />
+                  {/* Rotors */}
+                  <circle cx={10 * zoom} cy={-10 * zoom} r={5 * zoom} fill="white" stroke="#8A1538" strokeWidth={1.5 * zoom} opacity={0.95} />
+                  <circle cx={-10 * zoom} cy={-10 * zoom} r={5 * zoom} fill="white" stroke="#8A1538" strokeWidth={1.5 * zoom} opacity={0.95} />
+                  <circle cx={10 * zoom} cy={10 * zoom} r={5 * zoom} fill="white" stroke="#8A1538" strokeWidth={1.5 * zoom} opacity={0.95} />
+                  <circle cx={-10 * zoom} cy={10 * zoom} r={5 * zoom} fill="white" stroke="#8A1538" strokeWidth={1.5 * zoom} opacity={0.95} />
+                  {/* Body */}
+                  <circle cx={0} cy={0} r={5 * zoom} fill="#8A1538" stroke="white" strokeWidth={1.5 * zoom} style={{ filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.4))' }} />
                 </g>
               );
             })()}
