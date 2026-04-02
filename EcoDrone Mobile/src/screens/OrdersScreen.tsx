@@ -15,6 +15,7 @@ import { UserOrders, Order } from "models/order";
 import { getUserOrdersAPI } from "services/services";
 
 type NavigationProp = NativeStackNavigationProp<any>;
+const LIVE_REFRESH_INTERVAL_MS = 5000;
 
 function isTrackingStatus(status: Order["status"]) {
   return ["Pending", "Dispatched", "Preparing", "In Progress", "In Transit"].some(
@@ -62,7 +63,13 @@ export default function OrdersScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchOrders();
+      void fetchOrders();
+
+      const interval = setInterval(() => {
+        void fetchOrders();
+      }, LIVE_REFRESH_INTERVAL_MS);
+
+      return () => clearInterval(interval);
     }, []),
   );
 

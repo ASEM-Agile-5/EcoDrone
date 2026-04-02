@@ -21,6 +21,7 @@ import { Location } from "models/location";
 
 type NavigationProp = NativeStackNavigationProp<any>;
 type RouteType = RouteProp<{ MenuOrder: { vendor: any } }, "MenuOrder">;
+const LIVE_REFRESH_INTERVAL_MS = 5000;
 
 export default function MenuOrderScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -57,8 +58,15 @@ export default function MenuOrderScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchMenu();
-      fetchLocations();
+      void fetchMenu();
+      void fetchLocations();
+
+      const interval = setInterval(() => {
+        void fetchMenu();
+        void fetchLocations();
+      }, LIVE_REFRESH_INTERVAL_MS);
+
+      return () => clearInterval(interval);
     }, [vendor.id]),
   );
 

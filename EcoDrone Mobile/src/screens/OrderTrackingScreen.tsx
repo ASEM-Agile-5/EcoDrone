@@ -20,6 +20,7 @@ import { Location } from 'models/location';
 
 type NavigationProp = NativeStackNavigationProp<any>;
 type RouteType = RouteProp<{ OrderTracking: { orderId: string } }, 'OrderTracking'>;
+const LIVE_REFRESH_INTERVAL_MS = 5000;
 
 function getTrackingSteps(order: Order | null) {
   const normalized = order?.status?.toLowerCase() ?? '';
@@ -75,34 +76,42 @@ export default function OrderTrackingScreen() {
     React.useCallback(() => {
       let active = true;
 
-      const fetchOrder = async () => {
-        setLoading(true);
-        setError('');
+      const fetchOrder = async (showLoading = false) => {
+        if (showLoading) {
+          setLoading(true);
+        }
+
         try {
           const [orderData, locationData] = await Promise.all([
             getOrderDetailsAPI(orderId),
             getLocationsAPI(),
           ]);
           if (active) {
+            setError('');
             setOrder(orderData ?? null);
             setLocations(Array.isArray(locationData) ? locationData : []);
           }
         } catch (err) {
-          if (active) {
+          if (active && showLoading) {
             setError('Failed to load order tracking details.');
             setOrder(null);
           }
         } finally {
-          if (active) {
+          if (active && showLoading) {
             setLoading(false);
           }
         }
       };
 
-      fetchOrder();
+      void fetchOrder(true);
+
+      const interval = setInterval(() => {
+        void fetchOrder(false);
+      }, LIVE_REFRESH_INTERVAL_MS);
 
       return () => {
         active = false;
+        clearInterval(interval);
       };
     }, [orderId]),
   );

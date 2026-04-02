@@ -17,6 +17,7 @@ import { Vendor } from "models/vendors";
 import { getVendorsAPI } from "services/services";
 
 type NavigationProp = NativeStackNavigationProp<any>;
+const LIVE_REFRESH_INTERVAL_MS = 5000;
 
 export default function VendorBrowseScreen() {
   const navigation = useNavigation<NavigationProp>();
@@ -36,7 +37,13 @@ export default function VendorBrowseScreen() {
 
   useFocusEffect(
     React.useCallback(() => {
-      fetchVendors();
+      void fetchVendors();
+
+      const interval = setInterval(() => {
+        void fetchVendors();
+      }, LIVE_REFRESH_INTERVAL_MS);
+
+      return () => clearInterval(interval);
     }, []),
   );
 

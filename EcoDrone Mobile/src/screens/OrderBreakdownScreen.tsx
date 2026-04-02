@@ -17,6 +17,7 @@ import { getOrderDetailsAPI } from 'services/services';
 
 type NavigationProp = NativeStackNavigationProp<any>;
 type RouteType = RouteProp<{ OrderBreakdown: { orderId: string; order?: Order } }, 'OrderBreakdown'>;
+const LIVE_REFRESH_INTERVAL_MS = 5000;
 
 function statusBadgeStyle(status: string) {
   switch (status?.toLowerCase()) {
@@ -67,29 +68,37 @@ export default function OrderBreakdownScreen() {
     React.useCallback(() => {
       let active = true;
 
-      const fetchOrder = async () => {
-        setLoading(true);
-        setError('');
+      const fetchOrder = async (showLoading = false) => {
+        if (showLoading) {
+          setLoading(true);
+        }
+
         try {
           const data = await getOrderDetailsAPI(orderId);
           if (active) {
+            setError('');
             setOrder(data ?? null);
           }
         } catch {
-          if (active) {
+          if (active && showLoading) {
             setError('Failed to load order details.');
           }
         } finally {
-          if (active) {
+          if (active && showLoading) {
             setLoading(false);
           }
         }
       };
 
-      fetchOrder();
+      void fetchOrder(true);
+
+      const interval = setInterval(() => {
+        void fetchOrder(false);
+      }, LIVE_REFRESH_INTERVAL_MS);
 
       return () => {
         active = false;
+        clearInterval(interval);
       };
     }, [orderId]),
   );
