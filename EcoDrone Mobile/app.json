@@ -23,6 +23,18 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": []
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "e3b37449-681f-4df6-b049-53223317a63e"
+      }
+    },
+    "owner": "korantengnator",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e3b37449-681f-4df6-b049-53223317a63e"
+    }
   }
 }
