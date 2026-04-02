@@ -214,27 +214,6 @@ export function EnvironmentalPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-        <h3 className="text-xl mb-4" style={{ color: "#8A1538" }}>
-          Campus Drone Map
-        </h3>
-        <AshesiCampusMap markers={droneLocations} height={400} />
-        <div className="mt-4 flex items-center gap-6 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full" />
-            <span className="text-gray-600">Safe Status</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-amber-500 rounded-full" />
-            <span className="text-gray-600">Warning Status</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full" />
-            <span className="text-gray-600">Critical Status</span>
-          </div>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
           <h4 className="mb-4 flex items-center gap-2">
@@ -308,23 +287,22 @@ export function EnvironmentalPage() {
 
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
         <h3 className="text-xl mb-4" style={{ color: "#8A1538" }}>
-          Active Sensors
+          Campus Drone Map
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {droneLocations.map((drone) => (
-            <div key={drone.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-mono">{drone.id}</span>
-                <span
-                  className={`w-2 h-2 rounded-full ${drone.status === "Safe" ? "bg-green-500" : "bg-amber-500"}`}
-                />
-              </div>
-              <div className="text-xs text-gray-600">{drone.location}</div>
-              <div className="text-xs text-gray-500 mt-1">
-                {drone.lat.toFixed(3)}°, {drone.lng.toFixed(3)}°
-              </div>
-            </div>
-          ))}
+        <AshesiCampusMap markers={droneLocations} height={400} />
+        <div className="mt-4 flex items-center gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full" />
+            <span className="text-gray-600">Safe Status</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-amber-500 rounded-full" />
+            <span className="text-gray-600">Warning Status</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full" />
+            <span className="text-gray-600">Critical Status</span>
+          </div>
         </div>
       </div>
     </div>
