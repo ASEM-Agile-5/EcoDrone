@@ -19,7 +19,7 @@ import {
 } from "../components/ui/select";
 import React from "react";
 import { useNavigate } from "react-router";
-import { getOrderDetailsAPI, getOrdersAPI, getDronesAPI, updateOrderDeliveryAPI } from "../services/services";
+import { getOrderDetailsAPI, getOrdersAPI, getDronesAPI, updateOrderDeliveryAPI, editDroneAPI } from "../services/services";
 
 interface DeliveryItem {
   name: string;
@@ -99,7 +99,7 @@ const mapApiOrder = (order: any): Order => ({
 export function DeliveriesPage() {
   const navigate = useNavigate();
   const [deliveries, setDeliveries] = useState<Order[]>([]);
-  const [availableDrones, setAvailableDrones] = useState<string[]>([]);
+  const [allDrones, setAllDrones] = useState<any[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
@@ -130,7 +130,7 @@ export function DeliveriesPage() {
       try {
         const data = await getDronesAPI();
         if (data?.drones) {
-          setAvailableDrones(data.drones.map((d: any) => d.name));
+          setAllDrones(data.drones);
         }
       } catch (error) {
         console.error("Failed to fetch drones:", error);
@@ -213,6 +213,24 @@ export function DeliveriesPage() {
         }
 
         const response = await updateOrderDeliveryAPI(payload);
+
+        if (nextDrone && nextDrone !== currentDrone) {
+          const droneObj = allDrones.find((d) => d.name === nextDrone);
+          if (droneObj) {
+            await editDroneAPI(
+              droneObj.id,
+              droneObj.name,
+              droneObj.model,
+              droneObj.max_payload,
+              "Active",
+              droneObj.battery_level,
+              droneObj.current_location,
+            );
+            setAllDrones((prev) =>
+              prev.map((d) => d.id === droneObj.id ? { ...d, status: "Active" } : d)
+            );
+          }
+        }
 
         if (response?.status === 401) {
           setSaveError("You are not authorized to update this delivery.");
@@ -409,11 +427,13 @@ export function DeliveriesPage() {
                         <SelectValue placeholder="Select drone" />
                       </SelectTrigger>
                       <SelectContent>
-                        {availableDrones.map((drone) => (
-                          <SelectItem key={drone} value={drone}>
-                            {drone}
-                          </SelectItem>
-                        ))}
+                        {allDrones
+                          .filter((d) => d.status?.toLowerCase() === "idle")
+                          .map((drone) => (
+                            <SelectItem key={drone.name} value={drone.name}>
+                              {drone.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   ) : (
