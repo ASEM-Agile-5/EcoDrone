@@ -381,7 +381,12 @@ export function DeliveriesPage() {
                 <TableCell>
                   {editingOrder &&
                   editingOrder.order_id === delivery.order_id ? (
-                    <Select value={editStatus} onValueChange={setEditStatus}>
+                    <Select value={editStatus} onValueChange={(val) => {
+                      setEditStatus(val);
+                      if (val === "Completed" && editingOrder) {
+                        setEditDrone(editingOrder.assigned_drone === "Unassigned" ? "" : editingOrder.assigned_drone);
+                      }
+                    }}>
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
