@@ -19,7 +19,7 @@ import {
 } from "../components/ui/select";
 import React from "react";
 import { useNavigate } from "react-router";
-import { getOrderDetailsAPI, getOrdersAPI, getDronesAPI, updateOrderDeliveryAPI, editDroneAPI } from "../services/services";
+import { getOrderDetailsAPI, getOrdersAPI, getDronesAPI, updateOrderDeliveryAPI } from "../services/services";
 
 interface DeliveryItem {
   name: string;
@@ -213,24 +213,6 @@ export function DeliveriesPage() {
         }
 
         const response = await updateOrderDeliveryAPI(payload);
-
-        if (nextDrone && nextDrone !== currentDrone) {
-          const droneObj = allDrones.find((d) => d.name === nextDrone);
-          if (droneObj) {
-            await editDroneAPI(
-              droneObj.id,
-              droneObj.name,
-              droneObj.model,
-              droneObj.max_payload,
-              "Active",
-              droneObj.battery_level,
-              droneObj.current_location,
-            );
-            setAllDrones((prev) =>
-              prev.map((d) => d.id === droneObj.id ? { ...d, status: "Active" } : d)
-            );
-          }
-        }
 
         if (response?.status === 401) {
           setSaveError("You are not authorized to update this delivery.");
