@@ -46,11 +46,14 @@ export function DashboardLayout() {
     refetchUser();
   }, []);
 
+  // Local dev: set VITE_SKIP_DASHBOARD_AUTH=true in .env if backend login cookie is unavailable
+  const skipAuthRedirect = import.meta.env.VITE_SKIP_DASHBOARD_AUTH === "true";
+
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && !skipAuthRedirect) {
       navigate("/");
     }
-  }, [loading, user]);
+  }, [loading, user, navigate, skipAuthRedirect]);
 
   return (
     <div
