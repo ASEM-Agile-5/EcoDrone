@@ -1,3 +1,4 @@
+// EcoDrone environmental monitoring
 import { Thermometer, Wind, AlertTriangle } from "lucide-react";
 import { AshesiCampusMap } from "../components/AshesiCampusMap";
 import React, { useEffect, useRef, useState } from "react";
